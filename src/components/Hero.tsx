@@ -69,10 +69,6 @@ const Hero: React.FC = () => {
                   <Play className="h-5 w-5 mr-2" />
                   Start Learning Free
                 </button>
-                <button className="inline-flex items-center justify-center px-8 py-4 border-2 border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 font-semibold rounded-xl hover:border-primary-300 hover:text-primary-600 transition-all duration-300">
-                  Watch Demo
-                  <ArrowRight className="h-5 w-5 ml-2" />
-                </button>
               </div>
             </div>
 
@@ -88,7 +84,7 @@ const Hero: React.FC = () => {
                   <div className="ml-4 text-neutral-400 text-sm font-mono">hello_world.c</div>
                 </div>
                 <div className="p-6 font-mono text-sm">
-                  <div className="text-neutral-500">#include &lt;stdio.h&gt;</div>
+                  <div className="text-neutral-500">#include <stdio.h></div>
                   <div className="text-neutral-500 mt-2">// Your journey starts here</div>
                   <div className="text-blue-400 mt-2">int <span className="text-yellow-400">main</span>() {'{'}  </div>
                   <div className="text-neutral-300 ml-4 mt-1">
