@@ -7,6 +7,7 @@ import Compare from './pages/Compare';
 import Pricing from './pages/Pricing';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
+import Success from './pages/Success';
 import BackToTop from './components/BackToTop';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/success" element={<Success />} />
         </Routes>
         <BackToTop />
       </div>

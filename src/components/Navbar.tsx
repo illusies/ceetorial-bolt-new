@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Code, Menu, X, User, Settings } from 'lucide-react';
+import { Code, Menu, X, User, Settings, LogOut } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import AuthModal from './AuthModal';
+import { useAuth } from '../hooks/useAuth';
 
 interface NavbarProps {
   variant?: 'landing' | 'app';
@@ -14,6 +15,7 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
     isOpen: false,
     mode: 'login'
   });
+  const { user, signOut } = useAuth();
 
   const openAuthModal = (mode: 'login' | 'signup') => {
     setAuthModal({ isOpen: true, mode });
@@ -21,6 +23,11 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
 
   const closeAuthModal = () => {
     setAuthModal({ isOpen: false, mode: 'login' });
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = '/';
   };
 
   return (
@@ -48,18 +55,35 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
                     Pricing
                   </Link>
                   <ThemeToggle />
-                  <button 
-                    onClick={() => openAuthModal('login')}
-                    className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
-                  >
-                    Sign In
-                  </button>
-                  <button 
-                    onClick={() => openAuthModal('signup')}
-                    className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-                  >
-                    Get Started
-                  </button>
+                  {user ? (
+                    <div className="flex items-center space-x-4">
+                      <Link to="/dashboard" className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
+                        Dashboard
+                      </Link>
+                      <button 
+                        onClick={handleSignOut}
+                        className="flex items-center space-x-1 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => openAuthModal('login')}
+                        className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
+                      >
+                        Sign In
+                      </button>
+                      <button 
+                        onClick={() => openAuthModal('signup')}
+                        className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                      >
+                        Get Started
+                      </button>
+                    </>
+                  )}
                 </>
               ) : (
                 <>
@@ -77,6 +101,13 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
                     <Link to="/profile" className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
                       <User className="h-5 w-5" />
                     </Link>
+                    <button 
+                      onClick={handleSignOut}
+                      className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
+                      title="Sign Out"
+                    >
+                      <LogOut className="h-5 w-5" />
+                    </button>
                   </div>
                 </>
               )}
@@ -109,18 +140,34 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
                     <div className="px-4 py-2">
                       <ThemeToggle />
                     </div>
-                    <button 
-                      onClick={() => openAuthModal('login')}
-                      className="mx-4 mt-2 text-center py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
-                    >
-                      Sign In
-                    </button>
-                    <button 
-                      onClick={() => openAuthModal('signup')}
-                      className="mx-4 mt-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-center"
-                    >
-                      Get Started
-                    </button>
+                    {user ? (
+                      <>
+                        <Link to="/dashboard" className="px-4 py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
+                          Dashboard
+                        </Link>
+                        <button 
+                          onClick={handleSignOut}
+                          className="mx-4 mt-2 text-left py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
+                        >
+                          Sign Out
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => openAuthModal('login')}
+                          className="mx-4 mt-2 text-center py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
+                        >
+                          Sign In
+                        </button>
+                        <button 
+                          onClick={() => openAuthModal('signup')}
+                          className="mx-4 mt-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-center"
+                        >
+                          Get Started
+                        </button>
+                      </>
+                    )}
                   </>
                 ) : (
                   <>

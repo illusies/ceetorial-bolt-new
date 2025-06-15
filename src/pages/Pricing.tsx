@@ -1,10 +1,57 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
-import { Check, Star, Zap, Crown } from 'lucide-react';
+import { Check, Star, Zap, Crown, Loader2 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { useSubscription } from '../hooks/useSubscription';
+import { products } from '../stripe-config';
 
 const Pricing: React.FC = () => {
+  const { user } = useAuth();
+  const { subscription } = useSubscription();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handlePurchase = async (priceId: string, mode: 'payment' | 'subscription') => {
+    if (!user) {
+      // Redirect to sign up if not authenticated
+      window.location.href = '/?signup=true';
+      return;
+    }
+
+    setLoading(priceId);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          price_id: priceId,
+          success_url: `${window.location.origin}/success`,
+          cancel_url: `${window.location.origin}/pricing`,
+          mode,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } catch (error: any) {
+      console.error('Checkout error:', error);
+      alert('Failed to start checkout process. Please try again.');
+    } finally {
+      setLoading(null);
+    }
+  };
+
   const plans = [
     {
       name: 'Free',
@@ -27,7 +74,9 @@ const Pricing: React.FC = () => {
         'Limited to C language only',
         'No advanced features',
         'Community support only'
-      ]
+      ],
+      buttonText: 'Current Plan',
+      disabled: true
     },
     {
       name: 'Pro',
@@ -39,6 +88,8 @@ const Pricing: React.FC = () => {
       bgColor: 'bg-primary-50',
       borderColor: 'border-primary-200',
       popular: true,
+      priceId: products.find(p => p.name.includes('Pro'))?.priceId,
+      mode: products.find(p => p.name.includes('Pro'))?.mode || 'subscription',
       features: [
         'All programming languages (C, C++, Rust, Go, Python, etc.)',
         'Advanced code editor with IntelliSense',
@@ -72,9 +123,26 @@ const Pricing: React.FC = () => {
         'API access',
         'Priority technical support',
         'Training sessions for teams'
-      ]
+      ],
+      buttonText: 'Contact Sales',
+      disabled: true
     }
   ];
+
+  // Add the actual product from stripe-config
+  const freeProduct = products.find(p => p.name.includes('Free'));
+  if (freeProduct) {
+    const freeIndex = plans.findIndex(p => p.name === 'Free');
+    if (freeIndex !== -1) {
+      plans[freeIndex] = {
+        ...plans[freeIndex],
+        priceId: freeProduct.priceId,
+        mode: freeProduct.mode,
+        buttonText: 'Get Started Free',
+        disabled: false
+      };
+    }
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
@@ -90,6 +158,11 @@ const Pricing: React.FC = () => {
             Start free and upgrade as you grow. All plans include our core learning features 
             with different levels of access and support.
           </p>
+          {subscription && (
+            <div className="mt-4 inline-flex items-center px-4 py-2 bg-primary-100 text-primary-800 rounded-full text-sm font-medium">
+              Current Plan: {subscription.subscription_status === 'active' ? 'Pro' : 'Free'}
+            </div>
+          )}
         </div>
 
         {/* Pricing Cards */}
@@ -144,13 +217,24 @@ const Pricing: React.FC = () => {
               )}
 
               <button
-                className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${
-                  plan.popular
+                onClick={() => plan.priceId && plan.mode && handlePurchase(plan.priceId, plan.mode)}
+                disabled={plan.disabled || loading === plan.priceId}
+                className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 ${
+                  plan.popular && !plan.disabled
                     ? 'bg-primary-600 text-white hover:bg-primary-700 hover:scale-105'
+                    : plan.disabled
+                    ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 cursor-not-allowed'
                     : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-600'
                 }`}
               >
-                {plan.name === 'Free' ? 'Get Started Free' : `Start ${plan.name} Plan`}
+                {loading === plan.priceId ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <span>{plan.buttonText || `Start ${plan.name} Plan`}</span>
+                )}
               </button>
             </div>
           ))}
