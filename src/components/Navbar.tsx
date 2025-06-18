@@ -30,6 +30,32 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
     window.location.href = '/';
   };
 
+  const handleFeaturesClick = () => {
+    // If user is authenticated and not on landing page, go to landing page with features anchor
+    if (user && window.location.pathname !== '/') {
+      window.location.href = '/#features';
+    } else {
+      // If on landing page, scroll to features section
+      const featuresSection = document.getElementById('features');
+      if (featuresSection) {
+        featuresSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleLanguagesClick = () => {
+    // If user is authenticated and not on landing page, go to landing page with languages anchor
+    if (user && window.location.pathname !== '/') {
+      window.location.href = '/#languages';
+    } else {
+      // If on landing page, scroll to languages section
+      const languagesSection = document.getElementById('languages');
+      if (languagesSection) {
+        languagesSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <>
       <nav className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-50">
@@ -45,12 +71,18 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
             <div className="hidden md:flex items-center space-x-8">
               {variant === 'landing' ? (
                 <>
-                  <a href="#features" className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
+                  <button 
+                    onClick={handleFeaturesClick}
+                    className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
+                  >
                     Features
-                  </a>
-                  <a href="#languages" className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
+                  </button>
+                  <button 
+                    onClick={handleLanguagesClick}
+                    className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
+                  >
                     Languages
-                  </a>
+                  </button>
                   <Link to="/pricing" className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
                     Pricing
                   </Link>
@@ -90,6 +122,18 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
                   <Link to="/dashboard" className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
                     Dashboard
                   </Link>
+                  <button 
+                    onClick={handleFeaturesClick}
+                    className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
+                  >
+                    Features
+                  </button>
+                  <button 
+                    onClick={handleLanguagesClick}
+                    className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors"
+                  >
+                    Languages
+                  </button>
                   <Link to="/compare" className="text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
                     Compare
                   </Link>
@@ -128,12 +172,18 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
               <div className="flex flex-col space-y-2">
                 {variant === 'landing' ? (
                   <>
-                    <a href="#features" className="px-4 py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
+                    <button 
+                      onClick={handleFeaturesClick}
+                      className="px-4 py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors text-left"
+                    >
                       Features
-                    </a>
-                    <a href="#languages" className="px-4 py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
+                    </button>
+                    <button 
+                      onClick={handleLanguagesClick}
+                      className="px-4 py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors text-left"
+                    >
                       Languages
-                    </a>
+                    </button>
                     <Link to="/pricing" className="px-4 py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
                       Pricing
                     </Link>
@@ -174,6 +224,18 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
                     <Link to="/dashboard" className="px-4 py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
                       Dashboard
                     </Link>
+                    <button 
+                      onClick={handleFeaturesClick}
+                      className="px-4 py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors text-left"
+                    >
+                      Features
+                    </button>
+                    <button 
+                      onClick={handleLanguagesClick}
+                      className="px-4 py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors text-left"
+                    >
+                      Languages
+                    </button>
                     <Link to="/compare" className="px-4 py-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
                       Compare
                     </Link>
