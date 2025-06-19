@@ -34,6 +34,26 @@ public:
       features: ['OOP', 'Templates', 'STL', 'RAII'],
     },
     {
+      name: 'C#',
+      description: 'Modern object-oriented language for .NET',
+      color: 'bg-violet-600',
+      textColor: 'text-violet-600',
+      bgColor: 'bg-violet-50',
+      code: `using System;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Hello, World!");
+        }
+    }
+}`,
+      features: ['Managed Memory', 'LINQ', 'Async/Await', 'Cross-platform'],
+    },
+    {
       name: 'Rust',
       description: 'Memory-safe systems programming',
       color: 'bg-orange-600',
@@ -63,6 +83,20 @@ func main() {
     // Simple and efficient
 }`,
       features: ['Goroutines', 'Channels', 'Simple Syntax', 'Fast Compilation'],
+    },
+    {
+      name: 'Carbon',
+      description: 'Experimental successor to C++',
+      color: 'bg-slate-600',
+      textColor: 'text-slate-600',
+      bgColor: 'bg-slate-50',
+      code: `package Sample api;
+
+fn Main() -> i32 {
+    Print("Hello, World!");
+    return 0;
+}`,
+      features: ['C++ Interop', 'Memory Safety', 'Performance', 'Modern Syntax'],
     },
     {
       name: 'Python',
@@ -123,6 +157,22 @@ greetWorld()`,
       features: ['Type Safety', 'Performance', 'Modern Syntax', 'iOS Development'],
     },
     {
+      name: 'Objective-C',
+      description: 'Object-oriented extension of C',
+      color: 'bg-blue-700',
+      textColor: 'text-blue-700',
+      bgColor: 'bg-blue-100',
+      code: `#import <Foundation/Foundation.h>
+
+int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        NSLog(@"Hello, World!");
+    }
+    return 0;
+}`,
+      features: ['Dynamic Runtime', 'Message Passing', 'C Compatibility', 'Apple Ecosystem'],
+    },
+    {
       name: 'Kotlin',
       description: 'Modern JVM language',
       color: 'bg-pink-600',
@@ -134,6 +184,18 @@ greetWorld()`,
     // Concise and expressive
 }`,
       features: ['Interoperable', 'Null Safety', 'Concise', 'Android Development'],
+    },
+    {
+      name: 'Mojo',
+      description: 'AI-first programming language',
+      color: 'bg-amber-600',
+      textColor: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      code: `fn main():
+    print("Hello, World!")
+    
+    # Python compatible with C performance`,
+      features: ['Python Compatible', 'AI/ML Optimized', 'High Performance', 'Hardware Control'],
     },
   ];
 
