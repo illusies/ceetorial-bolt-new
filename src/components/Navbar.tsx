@@ -31,29 +31,13 @@ const Navbar: React.FC<NavbarProps> = ({ variant = 'landing' }) => {
   };
 
   const handleFeaturesClick = () => {
-    // If user is authenticated and not on landing page, go to landing page with features anchor
-    if (user && window.location.pathname !== '/') {
-      window.location.href = '/#features';
-    } else {
-      // If on landing page, scroll to features section
-      const featuresSection = document.getElementById('features');
-      if (featuresSection) {
-        featuresSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
+    // Always go to landing page with features anchor
+    window.location.href = '/#features';
   };
 
   const handleLanguagesClick = () => {
-    // If user is authenticated and not on landing page, go to landing page with languages anchor
-    if (user && window.location.pathname !== '/') {
-      window.location.href = '/#languages';
-    } else {
-      // If on landing page, scroll to languages section
-      const languagesSection = document.getElementById('languages');
-      if (languagesSection) {
-        languagesSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
+    // Always go to landing page with languages anchor
+    window.location.href = '/#languages';
   };
 
   return (
