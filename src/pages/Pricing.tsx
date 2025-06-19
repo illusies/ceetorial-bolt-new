@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
-import { Check, Star, Zap, Crown, Loader2 } from 'lucide-react';
+import AuthModal from '../components/AuthModal';
+import { Check, Star, Zap, Crown, Loader2, Mail, Phone, Building } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../hooks/useSubscription';
 import { products } from '../stripe-config';
@@ -11,11 +12,40 @@ const Pricing: React.FC = () => {
   const { user } = useAuth();
   const { subscription } = useSubscription();
   const [loading, setLoading] = useState<string | null>(null);
+  const [authModal, setAuthModal] = useState<{ isOpen: boolean; mode: 'login' | 'signup' }>({
+    isOpen: false,
+    mode: 'signup'
+  });
+  const [showContactSales, setShowContactSales] = useState(false);
+  const [showFreeTierActivated, setShowFreeTierActivated] = useState(false);
+
+  const openAuthModal = (mode: 'login' | 'signup') => {
+    setAuthModal({ isOpen: true, mode });
+  };
+
+  const closeAuthModal = () => {
+    setAuthModal({ isOpen: false, mode: 'signup' });
+  };
+
+  const handleFreeTierClick = () => {
+    if (user) {
+      // User is already logged in, show activation message
+      setShowFreeTierActivated(true);
+      setTimeout(() => setShowFreeTierActivated(false), 3000);
+    } else {
+      // User not logged in, show signup modal
+      openAuthModal('signup');
+    }
+  };
+
+  const handleContactSales = () => {
+    setShowContactSales(true);
+  };
 
   const handlePurchase = async (priceId: string, mode: 'payment' | 'subscription') => {
     if (!user) {
       // Redirect to sign up if not authenticated
-      window.location.href = '/?signup=true';
+      openAuthModal('signup');
       return;
     }
 
@@ -75,8 +105,8 @@ const Pricing: React.FC = () => {
         'No advanced features',
         'Community support only'
       ],
-      buttonText: 'Current Plan',
-      disabled: true
+      buttonText: 'Get Started Free',
+      onClick: handleFreeTierClick
     },
     {
       name: 'Pro',
@@ -101,7 +131,8 @@ const Pricing: React.FC = () => {
         'Downloadable certificates',
         'Offline content access',
         'Advanced progress analytics'
-      ]
+      ],
+      buttonText: 'Start Pro Plan'
     },
     {
       name: 'Enterprise',
@@ -125,24 +156,187 @@ const Pricing: React.FC = () => {
         'Training sessions for teams'
       ],
       buttonText: 'Contact Sales',
-      disabled: true
+      onClick: handleContactSales
     }
   ];
 
-  // Add the actual product from stripe-config
-  const freeProduct = products.find(p => p.name.includes('Free'));
-  if (freeProduct) {
-    const freeIndex = plans.findIndex(p => p.name === 'Free');
-    if (freeIndex !== -1) {
-      plans[freeIndex] = {
-        ...plans[freeIndex],
-        priceId: freeProduct.priceId,
-        mode: freeProduct.mode,
-        buttonText: 'Get Started Free',
-        disabled: false
-      };
-    }
-  }
+  // Contact Sales Modal
+  const ContactSalesModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="p-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex p-4 bg-purple-100 dark:bg-purple-900 rounded-full mb-4">
+              <Building className="h-8 w-8 text-purple-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
+              Enterprise Solutions
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-300">
+              Let's discuss how Ceetorial can transform your team's learning experience
+            </p>
+          </div>
+
+          <form className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  First Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
+                  placeholder="John"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
+                  placeholder="Doe"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                Work Email *
+              </label>
+              <input
+                type="email"
+                required
+                className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
+                placeholder="john@company.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                Company Name *
+              </label>
+              <input
+                type="text"
+                required
+                className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
+                placeholder="Acme Corporation"
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Team Size *
+                </label>
+                <select
+                  required
+                  className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
+                >
+                  <option value="">Select team size</option>
+                  <option value="1-10">1-10 people</option>
+                  <option value="11-50">11-50 people</option>
+                  <option value="51-200">51-200 people</option>
+                  <option value="201-1000">201-1000 people</option>
+                  <option value="1000+">1000+ people</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                Tell us about your needs
+              </label>
+              <textarea
+                rows={4}
+                className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
+                placeholder="What programming languages is your team interested in? What are your learning goals?"
+              />
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="marketing-consent"
+                className="w-4 h-4 text-purple-600 bg-neutral-100 border-neutral-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-neutral-800 focus:ring-2 dark:bg-neutral-700 dark:border-neutral-600"
+              />
+              <label htmlFor="marketing-consent" className="text-sm text-neutral-600 dark:text-neutral-300">
+                I agree to receive marketing communications from Ceetorial
+              </label>
+            </div>
+
+            <div className="flex space-x-4">
+              <button
+                type="button"
+                onClick={() => setShowContactSales(false)}
+                className="flex-1 px-6 py-3 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+              >
+                Request Demo
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-8 pt-6 border-t border-neutral-200 dark:border-neutral-700">
+            <div className="grid md:grid-cols-2 gap-6 text-center">
+              <div>
+                <Mail className="h-6 w-6 text-purple-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-neutral-900 dark:text-white">Email Us</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-300">enterprise@ceetorial.com</p>
+              </div>
+              <div>
+                <Phone className="h-6 w-6 text-purple-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-neutral-900 dark:text-white">Call Us</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-300">+1 (555) 123-4567</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Free Tier Activated Modal
+  const FreeTierActivatedModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+        <div className="inline-flex p-4 bg-secondary-100 dark:bg-secondary-900 rounded-full mb-4">
+          <Check className="h-8 w-8 text-secondary-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
+          Free Tier Activated!
+        </h2>
+        <p className="text-neutral-600 dark:text-neutral-300 mb-6">
+          You're all set to start learning C programming with our free tier. 
+          Access your dashboard to begin your coding journey!
+        </p>
+        <button
+          onClick={() => setShowFreeTierActivated(false)}
+          className="w-full px-6 py-3 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 transition-colors font-semibold"
+        >
+          Go to Dashboard
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
@@ -217,13 +411,17 @@ const Pricing: React.FC = () => {
               )}
 
               <button
-                onClick={() => plan.priceId && plan.mode && handlePurchase(plan.priceId, plan.mode)}
-                disabled={plan.disabled || loading === plan.priceId}
+                onClick={() => {
+                  if (plan.onClick) {
+                    plan.onClick();
+                  } else if (plan.priceId && plan.mode) {
+                    handlePurchase(plan.priceId, plan.mode);
+                  }
+                }}
+                disabled={loading === plan.priceId}
                 className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 ${
-                  plan.popular && !plan.disabled
+                  plan.popular
                     ? 'bg-primary-600 text-white hover:bg-primary-700 hover:scale-105'
-                    : plan.disabled
-                    ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 cursor-not-allowed'
                     : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-600'
                 }`}
               >
@@ -233,7 +431,7 @@ const Pricing: React.FC = () => {
                     <span>Processing...</span>
                   </>
                 ) : (
-                  <span>{plan.buttonText || `Start ${plan.name} Plan`}</span>
+                  <span>{plan.buttonText}</span>
                 )}
               </button>
             </div>
@@ -278,7 +476,7 @@ const Pricing: React.FC = () => {
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-3">
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-300 mb-3">
                 Do you offer student discounts?
               </h3>
               <p className="text-neutral-600 dark:text-neutral-300">
@@ -292,6 +490,17 @@ const Pricing: React.FC = () => {
 
       <Footer />
       <BackToTop />
+
+      {/* Modals */}
+      <AuthModal
+        isOpen={authModal.isOpen}
+        onClose={closeAuthModal}
+        mode={authModal.mode}
+        onModeChange={(mode) => setAuthModal({ isOpen: true, mode })}
+      />
+
+      {showContactSales && <ContactSalesModal />}
+      {showFreeTierActivated && <FreeTierActivatedModal />}
     </div>
   );
 };
