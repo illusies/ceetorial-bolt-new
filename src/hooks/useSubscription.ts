@@ -34,13 +34,14 @@ export function useSubscription() {
           .maybeSingle();
 
         if (error) {
-          console.error('Error fetching subscription:', error);
-          return;
+          console.log('Subscription fetch error:', error);
+          setSubscription(null);
+        } else {
+          setSubscription(data);
         }
-
-        setSubscription(data);
       } catch (error) {
-        console.error('Error fetching subscription:', error);
+        console.log('Subscription error:', error);
+        setSubscription(null);
       } finally {
         setLoading(false);
       }

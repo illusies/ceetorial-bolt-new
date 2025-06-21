@@ -154,7 +154,7 @@ const Footer: React.FC = () => {
         <div className="border-t border-neutral-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-neutral-400 text-sm mb-4 md:mb-0">
-              © 2024 Ceetorial. All rights reserved. Built with ❤️ for developers worldwide.
+              © 2025 Ceetorial. All rights reserved. Designed by Cyberfield Services.
             </div>
             <div className="flex items-center space-x-6 text-sm text-neutral-400">
               <Link to="/sitemap" className="hover:text-primary-400 transition-colors">
