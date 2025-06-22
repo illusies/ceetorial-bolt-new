@@ -13,13 +13,17 @@ import {
   Target,
   Award,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  AlertCircle
 } from 'lucide-react';
 
 const Learn: React.FC = () => {
   const { language } = useParams<{ language: string }>();
   const [isCodeRunning, setIsCodeRunning] = React.useState(false);
   const [currentLesson, setCurrentLesson] = React.useState(0);
+  const [output, setOutput] = React.useState('');
+  const [executionTime, setExecutionTime] = React.useState<number | null>(null);
+  const [hasError, setHasError] = React.useState(false);
 
   const languageData = {
     c: {
@@ -66,9 +70,57 @@ int main() {
     return 0;
 }`;
 
-  const runCode = () => {
+  const runCode = async () => {
     setIsCodeRunning(true);
-    setTimeout(() => setIsCodeRunning(false), 2000);
+    setHasError(false);
+    setOutput('Compiling and executing...');
+    setExecutionTime(null);
+    
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl) {
+        // Fallback to mock execution for demo
+        setTimeout(() => {
+          setOutput('\x1b[33m[Demo Mode]\x1b[0m\nValue: 42\nAddress: 0x7fff5c4c2a6c\nValue via pointer: 42');
+          setExecutionTime(1250);
+          setIsCodeRunning(false);
+        }, 1500);
+        return;
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/execute-c`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: codeExample }),
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Execution failed');
+      }
+
+      if (result.error) {
+        setOutput(`\x1b[31m[Compilation Error]\x1b[0m\n${result.error}`);
+        setHasError(true);
+      } else {
+        setOutput(result.output || 'Program executed successfully (no output)');
+      }
+      
+      setExecutionTime(result.executionTime || null);
+
+    } catch (error) {
+      console.error('Code execution error:', error);
+      setOutput(`\x1b[31m[Execution Error]\x1b[0m\n${error instanceof Error ? error.message : 'Failed to execute code'}`);
+      setHasError(true);
+    } finally {
+      setIsCodeRunning(false);
+    }
   };
 
   return (
@@ -80,7 +132,7 @@ int main() {
         <div className="w-80 bg-white border-r border-neutral-200 flex flex-col">
           <div className="p-6 border-b border-neutral-200">
             <div className="flex items-center space-x-3 mb-4">
-              <div className={`w-10 h-10 ${currentLang.color} rounded-lg flex items-center justify-center text-white font-bold`}>
+              <div className={`w-12 h-12 rounded-lg ${currentLang.color} flex items-center justify-center text-white font-mono font-bold text-lg`}>
                 {language?.toUpperCase().slice(0, 2)}
               </div>
               <div>
@@ -255,22 +307,43 @@ int main() {
               <div className="border-t border-neutral-800 p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-neutral-400 text-sm font-medium">Output</span>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-green-400 text-xs">Ready</span>
+                  <div className="flex items-center space-x-3">
+                    {executionTime && (
+                      <span className="text-neutral-500 text-xs">
+                        {executionTime}ms
+                      </span>
+                    )}
+                    <div className="flex items-center space-x-1">
+                      <div className={`w-2 h-2 rounded-full ${
+                        isCodeRunning ? 'bg-yellow-500' : hasError ? 'bg-red-500' : 'bg-green-500'
+                      }`}></div>
+                      <span className={`text-xs ${
+                        isCodeRunning ? 'text-yellow-400' : hasError ? 'text-red-400' : 'text-green-400'
+                      }`}>
+                        {isCodeRunning ? 'Running' : hasError ? 'Error' : 'Ready'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-neutral-800 rounded p-3 font-mono text-sm">
+                <div className="bg-neutral-800 rounded p-3 font-mono text-sm min-h-[100px]">
                   {isCodeRunning ? (
-                    <div className="text-yellow-400">Compiling and running...</div>
+                    <div className="text-yellow-400 flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
+                      <span>Compiling and executing...</span>
+                    </div>
                   ) : (
-                    <div className="text-green-400">
-                      <div>Value: 42</div>
-                      <div>Address: 0x7fff5c4c2a6c</div>
-                      <div>Value via pointer: 42</div>
+                    <div className={hasError ? 'text-red-400' : 'text-green-400'}>
+                      <pre className="whitespace-pre-wrap">{output || 'Click "Run" to execute the code'}</pre>
                     </div>
                   )}
                 </div>
+                
+                {hasError && (
+                  <div className="mt-2 flex items-start space-x-2 text-xs text-red-400">
+                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <span>Check your code for syntax errors and try again.</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

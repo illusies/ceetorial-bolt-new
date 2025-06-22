@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Copy, Download, Settings, Maximize2 } from 'lucide-react';
+import { Play, Copy, Download, Settings, Maximize2, AlertCircle } from 'lucide-react';
 
 interface CodeEditorProps {
   language: string;
@@ -17,6 +17,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const [code, setCode] = useState(initialCode);
   const [output, setOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
+  const [executionTime, setExecutionTime] = useState<number | null>(null);
+  const [hasError, setHasError] = useState(false);
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newCode = e.target.value;
@@ -25,14 +27,58 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   const runCode = async () => {
-    setIsRunning(true);
-    setOutput('Compiling and running...');
+    if (readOnly) return;
     
-    // Simulate code execution
-    setTimeout(() => {
-      setOutput(`Hello, Ceetorial!\nProgram executed successfully.\nExecution time: 0.023s`);
+    setIsRunning(true);
+    setHasError(false);
+    setOutput('Compiling and executing...');
+    setExecutionTime(null);
+    
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || language !== 'c') {
+        // Fallback to mock execution for demo or non-C languages
+        setTimeout(() => {
+          setOutput(`\x1b[33m[Demo Mode - ${language.toUpperCase()}]\x1b[0m\nProgram executed successfully.\nExecution time: 0.${Math.floor(Math.random() * 900) + 100}s`);
+          setExecutionTime(Math.floor(Math.random() * 1000) + 500);
+          setIsRunning(false);
+        }, 1500);
+        return;
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/execute-c`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Execution failed');
+      }
+
+      if (result.error) {
+        setOutput(`\x1b[31m[Compilation Error]\x1b[0m\n${result.error}`);
+        setHasError(true);
+      } else {
+        setOutput(result.output || 'Program executed successfully (no output)');
+      }
+      
+      setExecutionTime(result.executionTime || null);
+
+    } catch (error) {
+      console.error('Code execution error:', error);
+      setOutput(`\x1b[31m[Execution Error]\x1b[0m\n${error instanceof Error ? error.message : 'Failed to execute code'}`);
+      setHasError(true);
+    } finally {
       setIsRunning(false);
-    }, 1500);
+    }
   };
 
   const copyCode = () => {
@@ -111,11 +157,44 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         
         {/* Output Panel */}
         <div className="w-1/3 border-l border-neutral-200 dark:border-neutral-700">
-          <div className="p-3 bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
+          <div className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
             <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Output</span>
+            <div className="flex items-center space-x-3">
+              {executionTime && (
+                <span className="text-neutral-500 text-xs">
+                  {executionTime}ms
+                </span>
+              )}
+              <div className="flex items-center space-x-1">
+                <div className={`w-2 h-2 rounded-full ${
+                  isRunning ? 'bg-yellow-500' : hasError ? 'bg-red-500' : 'bg-green-500'
+                }`}></div>
+                <span className={`text-xs ${
+                  isRunning ? 'text-yellow-600' : hasError ? 'text-red-600' : 'text-green-600'
+                }`}>
+                  {isRunning ? 'Running' : hasError ? 'Error' : 'Ready'}
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="p-4 h-96 overflow-y-auto bg-neutral-900 text-green-400 font-mono text-sm">
-            <pre className="whitespace-pre-wrap">{output || 'Run your code to see output...'}</pre>
+          <div className="p-4 h-96 overflow-y-auto bg-neutral-900">
+            {isRunning ? (
+              <div className="text-yellow-400 flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
+                <span className="font-mono text-sm">Executing...</span>
+              </div>
+            ) : (
+              <pre className={`whitespace-pre-wrap font-mono text-sm ${hasError ? 'text-red-400' : 'text-green-400'}`}>
+                {output || 'Run your code to see output...'}
+              </pre>
+            )}
+            
+            {hasError && !isRunning && (
+              <div className="mt-3 flex items-start space-x-2 text-xs text-red-400">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>Check your code for syntax errors and try again.</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
