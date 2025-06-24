@@ -103,44 +103,31 @@ async function runCCodeSafely(code: string): Promise<{ output: string; error?: s
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
   try {
-    if (req.method !== 'POST') {
-      return new Response(
-        JSON.stringify({ error: 'Method not allowed' }),
-        {
-          status: 405,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
     const { code } = await req.json();
     
-    if (!code || typeof code !== 'string') {
-      return new Response(
-        JSON.stringify({ error: 'Missing or invalid code parameter' }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+    const result = await executeCode(code); // Your execution logic
+    
+    // Return semantic status codes
+    if (result.error) {
+      return new Response(JSON.stringify(result), {
+        status: 400, // Bad request
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
-
-    // Basic security checks
-    if (code.length > 10000) {
-      return new Response(
-        JSON.stringify({ error: 'Code too long (max 10,000 characters)' }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
+    
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500 }
+    );
+  }
+})
 
     // Check for potentially dangerous operations
     const dangerousPatterns = [
