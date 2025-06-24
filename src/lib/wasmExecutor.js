@@ -53,3 +53,29 @@ const validateMemory = (instance) => {
   }
   return memory;
 };
+
+const executeWithGuards = (instance, timeout = 5000) => {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error('Execution timed out'));
+      instance.exports.force_halt(); // Implement in WASM
+    }, timeout);
+
+    try {
+      // Execute WASM
+      const result = instance.exports.run_code();
+      
+      // Memory guard
+      const memUsed = instance.exports.get_memory_usage();
+      if (memUsed > 1024 * 1024) { // 1MB limit
+        throw new Error('Memory overflow');
+      }
+      
+      clearTimeout(timer);
+      resolve(result);
+    } catch (err) {
+      clearTimeout(timer);
+      reject(err);
+    }
+  });
+};
