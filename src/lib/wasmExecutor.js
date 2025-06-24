@@ -79,3 +79,16 @@ const executeWithGuards = (instance, timeout = 5000) => {
     }
   });
 };
+
+// Implement force_halt
+extern "C" {
+    void force_halt() {
+        // Trigger immediate termination
+        throw "ExecutionHalted";
+    }
+    
+    // Memory usage tracker
+    size_t get_memory_usage() {
+        return __builtin_wasm_memory_size(0) * WASM_PAGE_SIZE;
+    }
+}
