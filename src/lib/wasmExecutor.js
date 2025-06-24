@@ -92,3 +92,54 @@ extern "C" {
         return __builtin_wasm_memory_size(0) * WASM_PAGE_SIZE;
     }
 }
+
+// Enhanced memory protection
+const MEMORY_LIMIT = 1024 * 1024 * 10; // 10MB
+const MEMORY_GROWTH_LIMIT = 5; // Max 5 memory growth operations
+
+const executeWithGuards = (instance, code, timeout = 5000) => {
+  return new Promise((resolve, reject) => {
+    const memory = instance.exports.memory;
+    let growthCount = 0;
+    
+    // Memory growth observer
+    const originalGrow = memory.grow;
+    memory.grow = (pages) => {
+      growthCount++;
+      if (growthCount > MEMORY_GROWTH_LIMIT) {
+        reject(new Error('Memory growth limit exceeded'));
+        return -1;
+      }
+      return originalGrow.call(memory, pages);
+    };
+
+    const timer = setTimeout(() => {
+      reject(new Error('Execution timed out'));
+      instance.exports.force_halt();
+    }, timeout);
+
+    try {
+      // Initial memory check
+      if (memory.buffer.byteLength > MEMORY_LIMIT) {
+        throw new Error('Initial memory exceeds limit');
+      }
+      
+      // Execute WASM
+      const result = instance.exports.run_code();
+      
+      // Post-execution memory check
+      if (memory.buffer.byteLength > MEMORY_LIMIT) {
+        throw new Error('Memory overflow during execution');
+      }
+      
+      clearTimeout(timer);
+      resolve(result);
+    } catch (err) {
+      clearTimeout(timer);
+      reject(err);
+    } finally {
+      // Restore original grow function
+      memory.grow = originalGrow;
+    }
+  });
+};
