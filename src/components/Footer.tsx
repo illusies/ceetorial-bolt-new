@@ -73,9 +73,12 @@ const Footer: React.FC = () => {
             <h3 className="font-semibold text-lg mb-4">Learning</h3>
             <ul className="space-y-3">
               <li>
-                <Link to="/courses" className="text-neutral-300 hover:text-primary-400 transition-colors">
+                <button 
+                  onClick={() => window.location.href = '/#languages'}
+                  className="text-neutral-300 hover:text-primary-400 transition-colors"
+                >
                   Courses
-                </Link>
+                </button>
               </li>
               <li>
                 <Link to="/compare" className="text-neutral-300 hover:text-primary-400 transition-colors">
@@ -134,16 +137,6 @@ const Footer: React.FC = () => {
               <li>
                 <Link to="/privacy" className="text-neutral-300 hover:text-primary-400 transition-colors">
                   Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link to="/careers" className="text-neutral-300 hover:text-primary-400 transition-colors">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link to="/press" className="text-neutral-300 hover:text-primary-400 transition-colors">
-                  Press Kit
                 </Link>
               </li>
             </ul>
