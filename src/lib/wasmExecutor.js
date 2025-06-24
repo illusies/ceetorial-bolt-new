@@ -143,3 +143,36 @@ const executeWithGuards = (instance, code, timeout = 5000) => {
     }
   });
 };
+
+// Add to WASM imports
+const imports = {
+  env: {
+    // Block dangerous syscalls
+    fd_write: () => { throw new Error('File access blocked') },
+    system: () => { throw new Error('System calls blocked') },
+    
+    // Enhanced memory protection
+    memory_guard: (ptr, size) => {
+      const memory = instance.exports.memory;
+      if (ptr + size > memory.buffer.byteLength) {
+        throw new Error('Memory access violation');
+      }
+    }
+  }
+};
+
+// Secure wrapper for function calls
+const secureCall = (fn) => {
+  return (...args) => {
+    // Validate pointers before passing to WASM
+    args.forEach(arg => {
+      if (typeof arg === 'number' && arg > 0) {
+        imports.env.memory_guard(arg, 4); // Validate 4-byte access
+      }
+    });
+    return fn(...args);
+  };
+};
+
+// Usage
+instance.exports.unsafe_function = secureCall(instance.exports.unsafe_function);
