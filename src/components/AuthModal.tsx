@@ -58,6 +58,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onModeChan
           throw new Error('Password must be at least 6 characters long');
         }
 
+        // Get the current URL for proper redirect configuration
+        const currentUrl = window.location.origin;
+        const redirectUrl = `${currentUrl}/dashboard`;
+
         const { error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -65,19 +69,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onModeChan
             data: {
               name: formData.name,
             },
+            emailRedirectTo: redirectUrl
           },
         });
 
         if (error) throw error;
 
-        setSuccess('Account created successfully! You can now sign in.');
+        setSuccess('Account created successfully! Please check your email for a confirmation link.');
         setFormData({
           name: '',
           email: formData.email, // Keep email for convenience
           password: '',
           confirmPassword: ''
         });
-        onModeChange('login');
+        // Don't auto-switch to login mode, let user confirm email first
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,

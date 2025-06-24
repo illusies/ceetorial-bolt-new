@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Learn from './pages/Learn';
@@ -23,11 +23,71 @@ import Courses from './pages/Courses';
 import Careers from './pages/Careers';
 import Press from './pages/Press';
 import BackToTop from './components/BackToTop';
+import { supabase } from './lib/supabase';
+
+// Component to handle auth state changes and redirects
+const AuthHandler: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Handle auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') {
+        // User successfully signed in, redirect to dashboard
+        navigate('/dashboard');
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Token was refreshed, user is still authenticated
+        console.log('Token refreshed');
+      } else if (event === 'SIGNED_OUT') {
+        // User signed out, redirect to home if on protected page
+        const protectedPaths = ['/dashboard', '/settings', '/profile'];
+        if (protectedPaths.some(path => location.pathname.startsWith(path))) {
+          navigate('/');
+        }
+      }
+    });
+
+    // Check for email confirmation in URL
+    const handleEmailConfirmation = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get('access_token');
+      const refreshToken = urlParams.get('refresh_token');
+      const type = urlParams.get('type');
+
+      if (type === 'signup' && accessToken && refreshToken) {
+        try {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+
+          if (error) {
+            console.error('Error setting session:', error);
+          } else {
+            // Clear URL parameters and redirect to dashboard
+            window.history.replaceState({}, document.title, window.location.pathname);
+            navigate('/dashboard');
+          }
+        } catch (error) {
+          console.error('Error handling email confirmation:', error);
+        }
+      }
+    };
+
+    handleEmailConfirmation();
+
+    return () => subscription.unsubscribe();
+  }, [navigate, location]);
+
+  return null;
+};
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
+        <AuthHandler />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/dashboard" element={<Dashboard />} />

@@ -11,7 +11,15 @@ const hasValidConfig = supabaseUrl && supabaseAnonKey &&
 let supabase;
 
 if (hasValidConfig) {
-  supabase = createClient(supabaseUrl, supabaseAnonKey);
+  // Configure Supabase with proper redirect URLs
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce'
+    }
+  });
 } else {
   // Mock Supabase client for demo purposes with more helpful error messages
   console.warn('Supabase configuration missing. Running in demo mode.');
