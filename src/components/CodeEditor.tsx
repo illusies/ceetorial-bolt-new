@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Play, Copy, Download, Settings, Maximize2, AlertCircle } from 'lucide-react';
 
+const abortControllerRef = useRef(new AbortController());
+
 interface CodeEditorProps {
   language: string;
   initialCode?: string;
@@ -94,6 +96,39 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     element.click();
     document.body.removeChild(element);
   };
+
+  // In execution function
+const executeCode = async (code) => {
+  // Cancel previous request
+  abortControllerRef.current.abort();
+  abortControllerRef.current = new AbortController();
+  
+  try {
+    setLoading(true);
+    const response = await fetch('/api/execute', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+      signal: abortControllerRef.current.signal
+    });
+
+    if (!response.ok) throw new Error('Request failed');
+    
+    // Only update state if response is current
+    const result = await response.json();
+    setOutput(result);
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      setError(`Execution failed: ${err.message}`);
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Cleanup on unmount
+useEffect(() => {
+  return () => abortControllerRef.current.abort();
+}, []);
 
   return (
     <div className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
