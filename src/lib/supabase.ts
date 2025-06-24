@@ -3,19 +3,31 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-// For development/demo purposes, we'll create a mock client if env vars are missing
+// Check if we have valid Supabase configuration
+const hasValidConfig = supabaseUrl && supabaseAnonKey && 
+  supabaseUrl !== '' && supabaseAnonKey !== '' &&
+  supabaseUrl.includes('supabase.co');
+
 let supabase;
 
-if (supabaseUrl && supabaseAnonKey) {
+if (hasValidConfig) {
   supabase = createClient(supabaseUrl, supabaseAnonKey);
 } else {
-  // Mock Supabase client for demo purposes
+  // Mock Supabase client for demo purposes with more helpful error messages
+  console.warn('Supabase configuration missing. Running in demo mode.');
+  
   supabase = {
     auth: {
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-      signUp: () => Promise.resolve({ data: null, error: { message: 'Demo mode - authentication disabled' } }),
-      signInWithPassword: () => Promise.resolve({ data: null, error: { message: 'Demo mode - authentication disabled' } }),
+      signUp: () => Promise.resolve({ 
+        data: null, 
+        error: { message: 'Demo mode - Please connect to Supabase to enable user registration. Click "Connect to Supabase" in the top right corner.' } 
+      }),
+      signInWithPassword: () => Promise.resolve({ 
+        data: null, 
+        error: { message: 'Demo mode - Please connect to Supabase to enable authentication. Click "Connect to Supabase" in the top right corner.' } 
+      }),
       signOut: () => Promise.resolve({ error: null }),
       getUser: () => Promise.resolve({ data: { user: null }, error: null })
     },
