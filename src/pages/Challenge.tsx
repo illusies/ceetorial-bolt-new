@@ -78,6 +78,32 @@ const Challenge: React.FC = () => {
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCode(e.target.value);
+    // Reset completion status when code changes
+    setIsCompleted(false);
+  };
+
+  // Enhanced success detection function
+  const checkChallengeCompletion = (output: string, challengeId: string) => {
+    const cleanOutput = output.replace(/\x1b\[[0-9;]*m/g, '').trim(); // Remove ANSI color codes
+    
+    switch (challengeId) {
+      case 'daily-001': // Array Sum Calculator
+        return cleanOutput.includes('Sum: 15') || cleanOutput.includes('15');
+      
+      case 'daily-002': // Palindrome Checker
+        return cleanOutput.includes('racecar is a palindrome') || 
+               (cleanOutput.includes('palindrome') && !cleanOutput.includes('not'));
+      
+      case 'daily-003': // Fibonacci Sequence
+        return cleanOutput.includes('0 1 1 2 3 5 8 13 21 34') ||
+               (cleanOutput.includes('0') && cleanOutput.includes('1') && 
+                cleanOutput.includes('2') && cleanOutput.includes('3') && 
+                cleanOutput.includes('5') && cleanOutput.includes('8'));
+      
+      default:
+        // Generic check - look for expected output
+        return cleanOutput.includes(challenge.expectedOutput.trim());
+    }
   };
 
   const runCode = async () => {
@@ -85,21 +111,51 @@ const Challenge: React.FC = () => {
     setHasError(false);
     setOutput('Compiling and executing...');
     setExecutionTime(null);
+    setIsCompleted(false);
     
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       if (!supabaseUrl) {
-        // Fallback to mock execution for demo
+        // Enhanced mock execution for demo
         setTimeout(() => {
-          const isCorrect = code.includes('sum += arr[i]') || code.includes('sum = sum + arr[i]');
-          if (isCorrect) {
-            setOutput(`\x1b[32m[Success!]\x1b[0m\n${challenge.expectedOutput}`);
-            setIsCompleted(true);
+          let mockOutput = '';
+          let isCorrect = false;
+          
+          // Challenge-specific mock logic
+          if (challenge.id === 'daily-001') {
+            // Array sum challenge
+            if (code.includes('sum += arr[i]') || code.includes('sum = sum + arr[i]') || 
+                code.includes('sum+= arr[i]') || code.includes('sum +=arr[i]')) {
+              mockOutput = '\x1b[32m[Compilation successful]\x1b[0m\nSum: 15';
+              isCorrect = true;
+            } else {
+              mockOutput = '\x1b[33m[Demo Mode]\x1b[0m\nSum: 0\n\nHint: Make sure you\'re adding each array element to the sum variable.';
+            }
+          } else if (challenge.id === 'daily-002') {
+            // Palindrome challenge
+            if (code.includes('return 1') && (code.includes('strlen') || code.includes('length'))) {
+              mockOutput = '\x1b[32m[Compilation successful]\x1b[0m\nracecar is a palindrome';
+              isCorrect = true;
+            } else {
+              mockOutput = '\x1b[33m[Demo Mode]\x1b[0m\nracecar is not a palindrome\n\nHint: Compare characters from both ends of the string.';
+            }
+          } else if (challenge.id === 'daily-003') {
+            // Fibonacci challenge
+            if (code.includes('fibonacci(n-1)') && code.includes('fibonacci(n-2)')) {
+              mockOutput = '\x1b[32m[Compilation successful]\x1b[0m\nFirst 10 Fibonacci numbers:\n0 1 1 2 3 5 8 13 21 34';
+              isCorrect = true;
+            } else {
+              mockOutput = '\x1b[33m[Demo Mode]\x1b[0m\nFirst 10 Fibonacci numbers:\n0 0 0 0 0 0 0 0 0 0\n\nHint: Use recursion with base cases F(0)=0 and F(1)=1.';
+            }
           } else {
-            setOutput(`\x1b[33m[Demo Mode]\x1b[0m\nProgram executed. Check your logic and try again.`);
+            // Generic challenge
+            mockOutput = '\x1b[33m[Demo Mode]\x1b[0m\nProgram executed. Check your logic and try again.';
           }
+          
+          setOutput(mockOutput);
+          setIsCompleted(isCorrect);
           setExecutionTime(1250);
           setIsRunning(false);
         }, 1500);
@@ -124,12 +180,17 @@ const Challenge: React.FC = () => {
       if (result.error) {
         setOutput(`\x1b[31m[Compilation Error]\x1b[0m\n${result.error}`);
         setHasError(true);
+        setIsCompleted(false);
       } else {
-        setOutput(result.output || 'Program executed successfully (no output)');
+        const executionOutput = result.output || 'Program executed successfully (no output)';
+        setOutput(executionOutput);
         
-        // Check if output matches expected result
-        if (result.output && result.output.includes(challenge.expectedOutput)) {
-          setIsCompleted(true);
+        // Check if the challenge is completed using enhanced detection
+        const completed = checkChallengeCompletion(executionOutput, challenge.id);
+        setIsCompleted(completed);
+        
+        if (!completed) {
+          setHasError(false); // Not an error, just incorrect output
         }
       }
       
@@ -139,6 +200,7 @@ const Challenge: React.FC = () => {
       console.error('Code execution error:', error);
       setOutput(`\x1b[31m[Execution Error]\x1b[0m\n${error instanceof Error ? error.message : 'Failed to execute code'}`);
       setHasError(true);
+      setIsCompleted(false);
     } finally {
       setIsRunning(false);
     }
@@ -148,12 +210,19 @@ const Challenge: React.FC = () => {
     if (isCompleted) {
       // Save completion status
       localStorage.setItem(`challenge_${challenge.id}_completed`, 'true');
+      localStorage.setItem(`challenge_${challenge.id}_${new Date().toDateString()}`, 'true');
+      
+      // Update streak if it's a daily challenge
+      if (isDaily) {
+        const currentStreak = parseInt(localStorage.getItem('daily_streak') || '0');
+        localStorage.setItem('daily_streak', (currentStreak + 1).toString());
+      }
       
       // Show success message and redirect
-      alert(`Congratulations! You've completed the challenge and earned ${challenge.points} points!`);
+      alert(`🎉 Congratulations! You've completed the challenge and earned ${challenge.points} points!`);
       navigate('/daily-challenge');
     } else {
-      alert('Please make sure your code produces the correct output before submitting.');
+      alert('Please make sure your code produces the correct output before submitting. Run your code and check the output matches the expected result.');
     }
   };
 
@@ -226,6 +295,19 @@ const Challenge: React.FC = () => {
                 <span className="font-semibold text-neutral-900 dark:text-white">{challenge.points} pts</span>
               </div>
             </div>
+
+            {/* Completion Status */}
+            {isCompleted && (
+              <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="text-green-800 dark:text-green-200 font-medium">Challenge Completed!</span>
+                </div>
+                <p className="text-green-700 dark:text-green-300 text-sm mt-1">
+                  Great job! Your solution is correct. Click "Submit Solution" below.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Instructions Content */}
@@ -240,6 +322,14 @@ const Challenge: React.FC = () => {
                   .replace(/^## (.+)$/gm, '<h2 class="text-lg font-semibold text-neutral-900 dark:text-white mt-4 mb-2">$1</h2>')
                   .replace(/^### (.+)$/gm, '<h3 class="text-base font-medium text-neutral-900 dark:text-white mt-3 mb-2">$1</h3>')
               }} />
+            </div>
+
+            {/* Expected Output */}
+            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Expected Output:</h4>
+              <pre className="text-sm text-blue-800 dark:text-blue-200 font-mono bg-blue-100 dark:bg-blue-900/40 p-2 rounded">
+                {challenge.expectedOutput}
+              </pre>
             </div>
 
             {/* Hints Section */}
@@ -270,14 +360,27 @@ const Challenge: React.FC = () => {
             <button
               onClick={handleSubmit}
               disabled={!isCompleted}
-              className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
+              className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
                 isCompleted
-                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  ? 'bg-green-600 text-white hover:bg-green-700 hover:scale-105'
                   : 'bg-neutral-300 dark:bg-neutral-600 text-neutral-500 dark:text-neutral-400 cursor-not-allowed'
               }`}
             >
-              {isCompleted ? 'Submit Solution' : 'Complete Challenge First'}
+              {isCompleted ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <CheckCircle className="h-5 w-5" />
+                  <span>Submit Solution</span>
+                </div>
+              ) : (
+                'Complete Challenge First'
+              )}
             </button>
+            
+            {!isCompleted && (
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center mt-2">
+                Run your code and make sure the output matches the expected result
+              </p>
+            )}
           </div>
         </div>
 
@@ -366,7 +469,14 @@ const Challenge: React.FC = () => {
               {isCompleted && (
                 <div className="mt-3 flex items-start space-x-2 text-xs text-green-400">
                   <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>Great job! Your solution is correct. Click "Submit Solution" to complete the challenge.</span>
+                  <span>Perfect! Your solution produces the correct output. You can now submit your solution.</span>
+                </div>
+              )}
+
+              {!isCompleted && !hasError && output && !isRunning && (
+                <div className="mt-3 flex items-start space-x-2 text-xs text-yellow-400">
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>Output doesn't match expected result. Check the expected output in the instructions and try again.</span>
                 </div>
               )}
             </div>
