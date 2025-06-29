@@ -22,6 +22,7 @@ import Sitemap from './pages/Sitemap';
 import Courses from './pages/Courses';
 import Careers from './pages/Careers';
 import Press from './pages/Press';
+import DailyChallenge from './pages/DailyChallenge';
 import BackToTop from './components/BackToTop';
 import { supabase } from './lib/supabase';
 
@@ -111,6 +112,7 @@ function App() {
           <Route path="/courses" element={<Courses />} />
           <Route path="/careers" element={<Careers />} />
           <Route path="/press" element={<Press />} />
+          <Route path="/daily-challenge" element={<DailyChallenge />} />
         </Routes>
         <BackToTop />
       </div>

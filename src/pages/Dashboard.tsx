@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import BackToTop from '../components/BackToTop';
 import LanguageCard from '../components/LanguageCard';
 import { 
   TrendingUp, 
@@ -42,8 +44,8 @@ const Dashboard: React.FC = () => {
 
   // Handle Daily Challenge click
   const handleDailyChallenge = () => {
-    // Navigate to a simulated daily challenge
-    navigate('/learn/c?challenge=daily');
+    // Navigate to daily challenge page
+    navigate('/daily-challenge');
   };
 
   // Handle Continue Learning click
@@ -227,10 +229,20 @@ const Dashboard: React.FC = () => {
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {languages.map((language, index) => (
-              <LanguageCard key={index} language={language} />
-            ))}
+          <div className="text-center py-8">
+            <div className="inline-flex p-4 bg-neutral-100 dark:bg-neutral-700 rounded-full mb-4">
+              <BookOpen className="h-8 w-8 text-neutral-400" />
+            </div>
+            <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-2">No courses enrolled yet</h3>
+            <p className="text-neutral-600 dark:text-neutral-300 mb-6">
+              Choose from our comprehensive programming courses to start your learning journey.
+            </p>
+            <Link 
+              to="/courses"
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
+            >
+              Browse Courses
+            </Link>
           </div>
         </div>
 
@@ -254,6 +266,9 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <Footer />
+      <BackToTop />
     </div>
   );
 };
