@@ -98,7 +98,7 @@ const Hero: React.FC = () => {
                   <div className="ml-4 text-neutral-400 text-sm font-mono">hello_world.c</div>
                 </div>
                 <div className="p-6 font-mono text-sm">
-                  <div className="text-neutral-500">#include <stdio.h></div>
+                  <div className="text-neutral-500">#include &lt;stdio.h&gt;</div>
                   <div className="text-neutral-500 mt-2">// Your journey starts here</div>
                   <div className="text-blue-400 mt-2">int <span className="text-yellow-400">main</span>() {'{'}  </div>
                   <div className="text-neutral-300 ml-4 mt-1">
@@ -142,5 +142,3 @@ const Hero: React.FC = () => {
 };
 
 export default Hero;
-  )
-}
