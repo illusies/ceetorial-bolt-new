@@ -159,6 +159,15 @@ const Footer: React.FC = () => {
               <Link to="/cookies" className="hover:text-primary-400 transition-colors">
                 Cookie Policy
               </Link>
+              <a
+                href="https://bolt.new"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-2 text-sm text-neutral-500 hover:text-primary-600 transition-colors"
+              >
+                <span>Built with</span>
+                <span className="font-semibold">Bolt.new</span>
+              </a>
             </div>
           </div>
         </div>
