@@ -11,17 +11,42 @@ import {
   Users,
   Zap
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
+
+  // Extract first name from user data
+  const getFirstName = () => {
+    if (!user) return 'Developer';
+    
+    // Try to get name from user metadata first
+    if (user.user_metadata?.name) {
+      return user.user_metadata.name.split(' ')[0];
+    }
+    
+    // Try to get name from app metadata
+    if (user.app_metadata?.name) {
+      return user.app_metadata.name.split(' ')[0];
+    }
+    
+    // Fallback to email username
+    if (user.email) {
+      return user.email.split('@')[0];
+    }
+    
+    return 'Developer';
+  };
+
   const languages = [
     {
       name: 'C Programming',
       slug: 'c',
       description: 'Master the fundamentals of systems programming with C. Learn memory management, pointers, and low-level concepts.',
       difficulty: 'Beginner' as const,
-      progress: 75,
+      progress: 0,
       totalLessons: 24,
-      completedLessons: 18,
+      completedLessons: 0,
       color: 'bg-blue-500',
       icon: 'C',
     },
@@ -30,9 +55,9 @@ const Dashboard: React.FC = () => {
       slug: 'cpp',
       description: 'Build on your C knowledge with object-oriented programming, templates, and the Standard Template Library.',
       difficulty: 'Intermediate' as const,
-      progress: 45,
+      progress: 0,
       totalLessons: 32,
-      completedLessons: 14,
+      completedLessons: 0,
       color: 'bg-purple-500',
       icon: 'C++',
     },
@@ -41,9 +66,9 @@ const Dashboard: React.FC = () => {
       slug: 'rust',
       description: 'Learn memory-safe systems programming with Rust\'s ownership model and zero-cost abstractions.',
       difficulty: 'Advanced' as const,
-      progress: 20,
+      progress: 0,
       totalLessons: 28,
-      completedLessons: 6,
+      completedLessons: 0,
       color: 'bg-orange-500',
       icon: 'Rs',
     },
@@ -52,9 +77,9 @@ const Dashboard: React.FC = () => {
       slug: 'go',
       description: 'Discover Google\'s approach to simple, concurrent programming with goroutines and channels.',
       difficulty: 'Intermediate' as const,
-      progress: 60,
+      progress: 0,
       totalLessons: 20,
-      completedLessons: 12,
+      completedLessons: 0,
       color: 'bg-cyan-500',
       icon: 'Go',
     },
@@ -63,9 +88,9 @@ const Dashboard: React.FC = () => {
       slug: 'python',
       description: 'Explore high-level programming concepts with Python\'s readable syntax and powerful libraries.',
       difficulty: 'Beginner' as const,
-      progress: 90,
+      progress: 0,
       totalLessons: 26,
-      completedLessons: 23,
+      completedLessons: 0,
       color: 'bg-green-500',
       icon: 'Py',
     },
@@ -74,9 +99,9 @@ const Dashboard: React.FC = () => {
       slug: 'javascript',
       description: 'Master web development and asynchronous programming with the language of the internet.',
       difficulty: 'Intermediate' as const,
-      progress: 35,
+      progress: 0,
       totalLessons: 30,
-      completedLessons: 11,
+      completedLessons: 0,
       color: 'bg-yellow-500',
       icon: 'JS',
     },
@@ -85,30 +110,30 @@ const Dashboard: React.FC = () => {
   const stats = [
     {
       label: 'Languages Learning',
-      value: '6',
+      value: '0',
       icon: Code,
-      change: '+2 this month',
+      change: 'Start your journey',
       color: 'text-primary-600',
     },
     {
       label: 'Total Progress',
-      value: '54%',
+      value: '0%',
       icon: TrendingUp,
-      change: '+12% this week',
+      change: 'Begin learning',
       color: 'text-secondary-600',
     },
     {
       label: 'Study Streak',
-      value: '15 days',
+      value: '0 days',
       icon: Award,
-      change: 'Personal best!',
+      change: 'Start today!',
       color: 'text-accent-600',
     },
     {
       label: 'Time Invested',
-      value: '24h',
+      value: '0h',
       icon: Clock,
-      change: '+3h this week',
+      change: 'Time to start',
       color: 'text-purple-600',
     },
   ];
@@ -121,7 +146,7 @@ const Dashboard: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-neutral-900 mb-2">
-            Welcome back, Developer! 👋
+            Welcome back, {getFirstName()}! 👋
           </h1>
           <p className="text-neutral-600">
             Continue your programming journey. You're doing great!
@@ -181,28 +206,17 @@ const Dashboard: React.FC = () => {
         {/* Recent Activity */}
         <div className="bg-white rounded-xl border border-neutral-200 p-6">
           <h2 className="text-xl font-semibold text-neutral-900 mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4 p-3 bg-neutral-50 rounded-lg">
-              <div className="w-2 h-2 bg-secondary-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-neutral-900">Completed "Pointers in C" lesson</p>
-                <p className="text-xs text-neutral-500">2 hours ago</p>
-              </div>
+          <div className="text-center py-8">
+            <div className="inline-flex p-4 bg-neutral-100 rounded-full mb-4">
+              <BookOpen className="h-8 w-8 text-neutral-400" />
             </div>
-            <div className="flex items-center space-x-4 p-3 bg-neutral-50 rounded-lg">
-              <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-neutral-900">Started "Memory Management" chapter</p>
-                <p className="text-xs text-neutral-500">Yesterday</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 p-3 bg-neutral-50 rounded-lg">
-              <div className="w-2 h-2 bg-accent-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-neutral-900">Earned "C Fundamentals" badge</p>
-                <p className="text-xs text-neutral-500">3 days ago</p>
-              </div>
-            </div>
+            <h3 className="text-lg font-medium text-neutral-900 mb-2">No activity yet</h3>
+            <p className="text-neutral-600 mb-4">
+              Start learning to see your progress and achievements here.
+            </p>
+            <button className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold">
+              Start Your First Course
+            </button>
           </div>
         </div>
       </div>
