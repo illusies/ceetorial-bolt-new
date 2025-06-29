@@ -13,8 +13,47 @@ import {
   Target,
   Star
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const Profile: React.FC = () => {
+  const { user } = useAuth();
+
+  // Extract user information
+  const getUserName = () => {
+    if (!user) return 'Anonymous User';
+    
+    // Try to get name from user metadata first
+    if (user.user_metadata?.name) {
+      return user.user_metadata.name;
+    }
+    
+    // Try to get name from app metadata
+    if (user.app_metadata?.name) {
+      return user.app_metadata.name;
+    }
+    
+    // Fallback to email username
+    if (user.email) {
+      return user.email.split('@')[0];
+    }
+    
+    return 'Anonymous User';
+  };
+
+  const getUserEmail = () => {
+    return user?.email || 'No email provided';
+  };
+
+  const getJoinDate = () => {
+    if (user?.created_at) {
+      return new Date(user.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long'
+      });
+    }
+    return 'Recently';
+  };
+
   const achievements = [
     { name: 'C Fundamentals', icon: '🎯', date: '2024-01-15', description: 'Completed C basics course' },
     { name: 'First Program', icon: '🚀', date: '2024-01-10', description: 'Wrote your first Hello World' },
@@ -51,7 +90,7 @@ const Profile: React.FC = () => {
             </div>
             
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">John Doe</h1>
+              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">{getUserName()}</h1>
               <p className="text-neutral-600 dark:text-neutral-300 mb-4">
                 Passionate C programmer learning new languages and exploring systems programming.
               </p>
@@ -63,13 +102,11 @@ const Profile: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-1">
                   <Globe className="h-4 w-4" />
-                  <a href="https://johndoe.dev" className="text-primary-600 hover:text-primary-700">
-                    johndoe.dev
-                  </a>
+                  <span>{getUserEmail()}</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Calendar className="h-4 w-4" />
-                  <span>Joined January 2024</span>
+                  <span>Joined {getJoinDate()}</span>
                 </div>
               </div>
             </div>

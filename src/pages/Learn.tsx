@@ -1,5 +1,5 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { 
   Play, 
@@ -14,16 +14,49 @@ import {
   Award,
   ArrowLeft,
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  Trophy
 } from 'lucide-react';
+import { courses, getLessonById, getNextLesson, getPreviousLesson } from '../data/lessons';
+import { useProgress } from '../hooks/useProgress';
 
 const Learn: React.FC = () => {
   const { language } = useParams<{ language: string }>();
-  const [isCodeRunning, setIsCodeRunning] = React.useState(false);
-  const [currentLesson, setCurrentLesson] = React.useState(0);
-  const [output, setOutput] = React.useState('');
-  const [executionTime, setExecutionTime] = React.useState<number | null>(null);
-  const [hasError, setHasError] = React.useState(false);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { getCourseProgress, startCourse, updateCurrentLesson, completeLesson, isLessonCompleted } = useProgress();
+  
+  const [isCodeRunning, setIsCodeRunning] = useState(false);
+  const [output, setOutput] = useState('');
+  const [executionTime, setExecutionTime] = useState<number | null>(null);
+  const [hasError, setHasError] = useState(false);
+  const [lessonStartTime] = useState(Date.now());
+
+  // Find the course and current lesson
+  const course = courses.find(c => c.id === `${language}-programming` || c.name.toLowerCase().includes(language || ''));
+  const courseProgress = course ? getCourseProgress(course.id) : undefined;
+  
+  // Determine current lesson
+  let currentLessonId: string;
+  const challengeParam = searchParams.get('challenge');
+  
+  if (challengeParam === 'daily') {
+    // For daily challenge, start with a random lesson
+    currentLessonId = course?.lessons[Math.floor(Math.random() * Math.min(5, course.lessons.length))]?.id || course?.lessons[0]?.id || '';
+  } else {
+    currentLessonId = courseProgress?.currentLessonId || course?.lessons[0]?.id || '';
+  }
+
+  const currentLesson = course ? getLessonById(course.id, currentLessonId) : undefined;
+  const nextLesson = course ? getNextLesson(course.id, currentLessonId) : undefined;
+  const previousLesson = course ? getPreviousLesson(course.id, currentLessonId) : undefined;
+
+  useEffect(() => {
+    if (course && !courseProgress) {
+      startCourse(course.id, course.lessons[0].id);
+    }
+  }, [course, courseProgress, startCourse]);
 
   const languageData = {
     c: {
@@ -48,29 +81,9 @@ const Learn: React.FC = () => {
 
   const currentLang = languageData[language as keyof typeof languageData] || languageData.c;
 
-  const lessons = [
-    { title: 'Introduction to C', completed: true, current: false },
-    { title: 'Variables and Data Types', completed: true, current: false },
-    { title: 'Pointers and Memory', completed: false, current: true },
-    { title: 'Functions and Scope', completed: false, current: false },
-    { title: 'Arrays and Strings', completed: false, current: false },
-  ];
-
-  const codeExample = `#include <stdio.h>
-
-int main() {
-    // Pointer declaration
-    int number = 42;
-    int *ptr = &number;
-    
-    printf("Value: %d\\n", number);
-    printf("Address: %p\\n", ptr);
-    printf("Value via pointer: %d\\n", *ptr);
-    
-    return 0;
-}`;
-
   const runCode = async () => {
+    if (!currentLesson) return;
+    
     setIsCodeRunning(true);
     setHasError(false);
     setOutput('Compiling and executing...');
@@ -83,7 +96,7 @@ int main() {
       if (!supabaseUrl) {
         // Fallback to mock execution for demo
         setTimeout(() => {
-          setOutput('\x1b[33m[Demo Mode]\x1b[0m\nValue: 42\nAddress: 0x7fff5c4c2a6c\nValue via pointer: 42');
+          setOutput(`\x1b[33m[Demo Mode]\x1b[0m\n${currentLesson.expectedOutput}`);
           setExecutionTime(1250);
           setIsCodeRunning(false);
         }, 1500);
@@ -96,7 +109,7 @@ int main() {
           'Authorization': `Bearer ${supabaseAnonKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code: codeExample }),
+        body: JSON.stringify({ code: currentLesson.code }),
       });
 
       const result = await response.json();
@@ -109,7 +122,7 @@ int main() {
         setOutput(`\x1b[31m[Compilation Error]\x1b[0m\n${result.error}`);
         setHasError(true);
       } else {
-        setOutput(result.output || 'Program executed successfully (no output)');
+        setOutput(result.output || currentLesson.expectedOutput);
       }
       
       setExecutionTime(result.executionTime || null);
@@ -123,70 +136,151 @@ int main() {
     }
   };
 
+  const handleLessonSelect = (lessonId: string) => {
+    if (course) {
+      updateCurrentLesson(course.id, lessonId);
+      navigate(`/learn/${language}?lesson=${lessonId}`);
+    }
+  };
+
+  const handleNext = () => {
+    if (nextLesson && course) {
+      // Mark current lesson as completed
+      const timeSpent = Math.round((Date.now() - lessonStartTime) / 60000); // Convert to minutes
+      completeLesson(course.id, currentLessonId, timeSpent);
+      
+      updateCurrentLesson(course.id, nextLesson.id);
+      navigate(`/learn/${language}?lesson=${nextLesson.id}`);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (previousLesson && course) {
+      updateCurrentLesson(course.id, previousLesson.id);
+      navigate(`/learn/${language}?lesson=${previousLesson.id}`);
+    }
+  };
+
+  if (!course || !currentLesson) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
+        <Navbar variant="app" />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <AlertCircle className="h-16 w-16 text-neutral-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Course Not Found</h2>
+            <p className="text-neutral-600 dark:text-neutral-300">The requested course could not be found.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
       <Navbar variant="app" />
       
       <div className="flex h-screen">
         {/* Sidebar - Lesson Navigation */}
-        <div className="w-80 bg-white border-r border-neutral-200 flex flex-col">
-          <div className="p-6 border-b border-neutral-200">
+        <div className="w-80 bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 flex flex-col">
+          <div className="p-6 border-b border-neutral-200 dark:border-neutral-700">
             <div className="flex items-center space-x-3 mb-4">
               <div className={`w-12 h-12 rounded-lg ${currentLang.color} flex items-center justify-center text-white font-mono font-bold text-lg`}>
                 {language?.toUpperCase().slice(0, 2)}
               </div>
               <div>
-                <h2 className="font-semibold text-lg">{currentLang.name}</h2>
-                <p className="text-sm text-neutral-500">Chapter 3: Pointers</p>
+                <h2 className="font-semibold text-lg text-neutral-900 dark:text-white">{currentLang.name}</h2>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">{course.name}</p>
               </div>
             </div>
             
             {/* Progress */}
             <div className="mb-4">
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-neutral-600">Progress</span>
-                <span className="font-medium">40%</span>
+                <span className="text-neutral-600 dark:text-neutral-300">Progress</span>
+                <span className="font-medium text-neutral-900 dark:text-white">
+                  {courseProgress?.lessonsCompleted.length || 0}/{course.totalLessons}
+                </span>
               </div>
-              <div className="w-full bg-neutral-200 rounded-full h-2">
-                <div className={`h-2 rounded-full ${currentLang.color} w-2/5`}></div>
+              <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
+                <div 
+                  className={`h-2 rounded-full ${currentLang.color}`} 
+                  style={{ width: `${((courseProgress?.lessonsCompleted.length || 0) / course.totalLessons) * 100}%` }}
+                ></div>
               </div>
             </div>
+
+            {challengeParam === 'daily' && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+                <div className="flex items-center space-x-2">
+                  <Trophy className="h-4 w-4 text-yellow-600" />
+                  <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Daily Challenge</span>
+                </div>
+                <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                  Complete this lesson to earn bonus points!
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Lesson List */}
           <div className="flex-1 overflow-y-auto p-4">
             <div className="space-y-2">
-              {lessons.map((lesson, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                    lesson.current 
-                      ? `${currentLang.bgColor} ${currentLang.textColor}` 
-                      : 'hover:bg-neutral-100'
-                  }`}
-                  onClick={() => setCurrentLesson(index)}
-                >
-                  {lesson.completed ? (
-                    <CheckCircle className="h-5 w-5 text-secondary-600" />
-                  ) : (
-                    <Circle className="h-5 w-5 text-neutral-400" />
-                  )}
-                  <span className={`text-sm font-medium ${lesson.current ? 'text-current' : 'text-neutral-700'}`}>
-                    {lesson.title}
-                  </span>
-                </div>
-              ))}
+              {course.lessons.slice(0, 10).map((lesson, index) => {
+                const isCompleted = isLessonCompleted(course.id, lesson.id);
+                const isCurrent = lesson.id === currentLessonId;
+                
+                return (
+                  <button
+                    key={lesson.id}
+                    onClick={() => handleLessonSelect(lesson.id)}
+                    className={`w-full flex items-center space-x-3 p-3 rounded-lg text-left transition-colors ${
+                      isCurrent 
+                        ? `${currentLang.bgColor} ${currentLang.textColor} dark:bg-opacity-20` 
+                        : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <Circle className="h-5 w-5 text-neutral-400" />
+                    )}
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-sm font-medium ${isCurrent ? 'text-current' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                          {index + 1}. {lesson.title}
+                        </span>
+                        <div className="flex items-center space-x-1 text-xs text-neutral-500 dark:text-neutral-400">
+                          <Clock className="h-3 w-3" />
+                          <span>{lesson.estimatedTime}m</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                        {lesson.difficulty}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Navigation Buttons */}
-          <div className="p-4 border-t border-neutral-200">
+          <div className="p-4 border-t border-neutral-200 dark:border-neutral-700">
             <div className="flex space-x-2">
-              <button className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 border border-neutral-300 rounded-lg text-neutral-700 hover:bg-neutral-50 transition-colors">
+              <button 
+                onClick={handlePrevious}
+                disabled={!previousLesson}
+                className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Previous</span>
               </button>
-              <button className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 ${currentLang.color} text-white rounded-lg hover:opacity-90 transition-opacity`}>
+              <button 
+                onClick={handleNext}
+                disabled={!nextLesson}
+                className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 ${currentLang.color} text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
                 <span>Next</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
@@ -197,24 +291,35 @@ int main() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
           {/* Content Header */}
-          <div className="bg-white border-b border-neutral-200 p-6">
+          <div className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-neutral-900 mb-2">
-                  Pointers and Memory Management
+                <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
+                  {currentLesson.title}
                 </h1>
-                <p className="text-neutral-600">
-                  Learn how to work with memory addresses and pointer arithmetic in C
+                <p className="text-neutral-600 dark:text-neutral-300">
+                  {currentLesson.description}
                 </p>
+                <div className="flex items-center space-x-4 mt-3 text-sm text-neutral-500 dark:text-neutral-400">
+                  <div className="flex items-center space-x-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{currentLesson.estimatedTime} minutes</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Target className="h-4 w-4" />
+                    <span>{currentLesson.difficulty}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Book className="h-4 w-4" />
+                    <span>{currentLesson.concepts.join(', ')}</span>
+                  </div>
+                </div>
               </div>
               <div className="flex items-center space-x-2">
-                <button className="p-2 text-neutral-600 hover:text-primary-600 transition-colors">
+                <button className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
                   <Book className="h-5 w-5" />
                 </button>
-                <button className="p-2 text-neutral-600 hover:text-primary-600 transition-colors">
-                  <Target className="h-5 w-5" />
-                </button>
-                <button className="p-2 text-neutral-600 hover:text-primary-600 transition-colors">
+                <button className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-primary-600 transition-colors">
                   <Award className="h-5 w-5" />
                 </button>
               </div>
@@ -224,47 +329,9 @@ int main() {
           {/* Content Area */}
           <div className="flex-1 grid grid-cols-2 gap-0">
             {/* Theory/Explanation */}
-            <div className="bg-white p-6 overflow-y-auto">
-              <div className="prose max-w-none">
-                <h3 className="text-xl font-semibold text-neutral-900 mb-4">Understanding Pointers</h3>
-                
-                <p className="text-neutral-700 mb-4">
-                  A pointer is a variable that stores the memory address of another variable. 
-                  Pointers are one of the most powerful features in C programming.
-                </p>
-
-                <h4 className="text-lg font-medium text-neutral-900 mb-3">Key Concepts:</h4>
-                <ul className="space-y-2 text-neutral-700 mb-6">
-                  <li className="flex items-start space-x-2">
-                    <span className="text-primary-600 font-bold">•</span>
-                    <span><strong>Declaration:</strong> <code className="bg-neutral-100 px-1 rounded">int *ptr;</code> declares a pointer to an integer</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-primary-600 font-bold">•</span>
-                    <span><strong>Address operator (&):</strong> Gets the address of a variable</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-primary-600 font-bold">•</span>
-                    <span><strong>Dereference operator (*):</strong> Accesses the value at the address</span>
-                  </li>
-                </ul>
-
-                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
-                  <h5 className="font-medium text-primary-900 mb-2">💡 Pro Tip</h5>
-                  <p className="text-primary-800 text-sm">
-                    Think of pointers as street addresses. The address tells you where 
-                    to find a house (variable), and dereferencing is like going to that 
-                    address to see what's inside.
-                  </p>
-                </div>
-
-                <h4 className="text-lg font-medium text-neutral-900 mb-3">Common Use Cases:</h4>
-                <ul className="space-y-1 text-neutral-700">
-                  <li>• Dynamic memory allocation</li>
-                  <li>• Passing large data structures efficiently</li>
-                  <li>• Creating linked data structures</li>
-                  <li>• Function pointers for callbacks</li>
-                </ul>
+            <div className="bg-white dark:bg-neutral-800 p-6 overflow-y-auto">
+              <div className="prose prose-neutral dark:prose-invert max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: currentLesson.content.replace(/\n/g, '<br>').replace(/```c\n([\s\S]*?)\n```/g, '<pre class="bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto"><code>$1</code></pre>') }} />
               </div>
             </div>
 
@@ -278,7 +345,7 @@ int main() {
                     <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                   </div>
-                  <span className="text-neutral-400 text-sm font-mono">pointers_example.c</span>
+                  <span className="text-neutral-400 text-sm font-mono">lesson_{currentLesson.id}.c</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
@@ -299,7 +366,7 @@ int main() {
               {/* Code Area */}
               <div className="flex-1 p-4 font-mono text-sm overflow-y-auto">
                 <pre className="text-neutral-300">
-                  <code>{codeExample}</code>
+                  <code>{currentLesson.code}</code>
                 </pre>
               </div>
 
