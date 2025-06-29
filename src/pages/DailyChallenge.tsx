@@ -193,9 +193,15 @@ int main() {
 
     setStarting(true);
     
-    // Simulate starting the challenge
+    // Simulate starting the challenge - create a blank page with challenge design
     setTimeout(() => {
-      navigate(`/learn/c?challenge=daily&challengeId=${challenge.id}`);
+      // Navigate to a special challenge page that shows a blank coding interface
+      navigate(`/learn/c?challenge=daily&challengeId=${challenge.id}`, {
+        state: { 
+          challengeData: challenge,
+          isBlankChallenge: true 
+        }
+      });
       setStarting(false);
     }, 1000);
   };

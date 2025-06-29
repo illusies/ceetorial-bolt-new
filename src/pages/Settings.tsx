@@ -4,18 +4,26 @@ import BackToTop from '../components/BackToTop';
 import { 
   User, 
   Bell, 
-  Shield, 
   Palette, 
   Code, 
   Globe,
   Save,
   Eye,
-  EyeOff
+  EyeOff,
+  Check,
+  X,
+  Monitor,
+  Sun,
+  Moon,
+  Zap,
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [settings, setSettings] = useState({
     profile: {
       name: 'John Doe',
@@ -31,25 +39,34 @@ const Settings: React.FC = () => {
       newCourses: true,
       communityUpdates: false
     },
-    privacy: {
-      profileVisibility: 'public',
-      showProgress: true,
-      showAchievements: true,
-      allowMessages: true
-    },
     preferences: {
       theme: 'system',
       language: 'en',
+      timezone: 'America/Los_Angeles',
+      dateFormat: 'MM/DD/YYYY',
+      autoSave: true,
+      compactMode: false,
+      showHints: true,
+      enableSounds: true,
+      animationsEnabled: true
+    },
+    coding: {
       codeTheme: 'dark',
       fontSize: 'medium',
-      autoSave: true
+      tabSize: 4,
+      wordWrap: true,
+      lineNumbers: true,
+      autoComplete: true,
+      syntaxHighlighting: true,
+      bracketMatching: true,
+      codeFormatting: 'auto',
+      indentationType: 'spaces'
     }
   });
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: User },
     { id: 'notifications', name: 'Notifications', icon: Bell },
-    { id: 'privacy', name: 'Privacy', icon: Shield },
     { id: 'preferences', name: 'Preferences', icon: Palette },
     { id: 'coding', name: 'Coding', icon: Code }
   ];
@@ -62,6 +79,14 @@ const Settings: React.FC = () => {
         [field]: value
       }
     }));
+  };
+
+  const handleSaveChanges = () => {
+    // Simulate saving changes
+    setShowSuccessModal(true);
+    setTimeout(() => {
+      setShowSuccessModal(false);
+    }, 3000);
   };
 
   const renderProfileTab = () => (
@@ -180,6 +205,253 @@ const Settings: React.FC = () => {
     </div>
   );
 
+  const renderPreferencesTab = () => (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+          Theme
+        </label>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { value: 'light', label: 'Light', icon: Sun },
+            { value: 'dark', label: 'Dark', icon: Moon },
+            { value: 'system', label: 'System', icon: Monitor }
+          ].map((theme) => (
+            <button
+              key={theme.value}
+              onClick={() => handleInputChange('preferences', 'theme', theme.value)}
+              className={`flex items-center space-x-2 p-3 rounded-lg border-2 transition-all ${
+                settings.preferences.theme === theme.value
+                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                  : 'border-neutral-300 dark:border-neutral-600 hover:border-neutral-400'
+              }`}
+            >
+              <theme.icon className="h-4 w-4" />
+              <span className="text-sm font-medium">{theme.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            Language
+          </label>
+          <select
+            value={settings.preferences.language}
+            onChange={(e) => handleInputChange('preferences', 'language', e.target.value)}
+            className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
+          >
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="zh">Chinese</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            Timezone
+          </label>
+          <select
+            value={settings.preferences.timezone}
+            onChange={(e) => handleInputChange('preferences', 'timezone', e.target.value)}
+            className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
+          >
+            <option value="America/Los_Angeles">Pacific Time</option>
+            <option value="America/Denver">Mountain Time</option>
+            <option value="America/Chicago">Central Time</option>
+            <option value="America/New_York">Eastern Time</option>
+            <option value="UTC">UTC</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          Date Format
+        </label>
+        <select
+          value={settings.preferences.dateFormat}
+          onChange={(e) => handleInputChange('preferences', 'dateFormat', e.target.value)}
+          className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
+        >
+          <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+          <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+          <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+        </select>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium text-neutral-900 dark:text-white">Interface Options</h3>
+        {[
+          { key: 'autoSave', label: 'Auto-save progress', description: 'Automatically save your progress as you learn' },
+          { key: 'compactMode', label: 'Compact mode', description: 'Use a more compact interface layout' },
+          { key: 'showHints', label: 'Show hints', description: 'Display helpful hints during lessons' },
+          { key: 'enableSounds', label: 'Enable sounds', description: 'Play sounds for notifications and interactions' },
+          { key: 'animationsEnabled', label: 'Enable animations', description: 'Use smooth animations throughout the interface' }
+        ].map((option) => (
+          <div key={option.key} className="flex items-center justify-between">
+            <div>
+              <h4 className="text-sm font-medium text-neutral-900 dark:text-white">{option.label}</h4>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">{option.description}</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.preferences[option.key as keyof typeof settings.preferences] as boolean}
+                onChange={(e) => handleInputChange('preferences', option.key, e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-neutral-600 peer-checked:bg-primary-600"></div>
+            </label>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderCodingTab = () => (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+          Code Editor Theme
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { value: 'dark', label: 'Dark Theme' },
+            { value: 'light', label: 'Light Theme' }
+          ].map((theme) => (
+            <button
+              key={theme.value}
+              onClick={() => handleInputChange('coding', 'codeTheme', theme.value)}
+              className={`p-3 rounded-lg border-2 transition-all ${
+                settings.coding.codeTheme === theme.value
+                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                  : 'border-neutral-300 dark:border-neutral-600 hover:border-neutral-400'
+              }`}
+            >
+              <span className="text-sm font-medium">{theme.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            Font Size
+          </label>
+          <select
+            value={settings.coding.fontSize}
+            onChange={(e) => handleInputChange('coding', 'fontSize', e.target.value)}
+            className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
+          >
+            <option value="small">Small (12px)</option>
+            <option value="medium">Medium (14px)</option>
+            <option value="large">Large (16px)</option>
+            <option value="extra-large">Extra Large (18px)</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            Tab Size
+          </label>
+          <select
+            value={settings.coding.tabSize}
+            onChange={(e) => handleInputChange('coding', 'tabSize', parseInt(e.target.value))}
+            className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
+          >
+            <option value={2}>2 spaces</option>
+            <option value={4}>4 spaces</option>
+            <option value={8}>8 spaces</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          Code Formatting
+        </label>
+        <select
+          value={settings.coding.codeFormatting}
+          onChange={(e) => handleInputChange('coding', 'codeFormatting', e.target.value)}
+          className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
+        >
+          <option value="auto">Auto-format on save</option>
+          <option value="manual">Manual formatting only</option>
+          <option value="disabled">Disabled</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+          Indentation Type
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { value: 'spaces', label: 'Spaces' },
+            { value: 'tabs', label: 'Tabs' }
+          ].map((type) => (
+            <button
+              key={type.value}
+              onClick={() => handleInputChange('coding', 'indentationType', type.value)}
+              className={`p-3 rounded-lg border-2 transition-all ${
+                settings.coding.indentationType === type.value
+                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                  : 'border-neutral-300 dark:border-neutral-600 hover:border-neutral-400'
+              }`}
+            >
+              <span className="text-sm font-medium">{type.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium text-neutral-900 dark:text-white">Editor Features</h3>
+        {[
+          { key: 'wordWrap', label: 'Word wrap', description: 'Wrap long lines of code' },
+          { key: 'lineNumbers', label: 'Line numbers', description: 'Show line numbers in the editor' },
+          { key: 'autoComplete', label: 'Auto-complete', description: 'Enable intelligent code completion' },
+          { key: 'syntaxHighlighting', label: 'Syntax highlighting', description: 'Highlight code syntax with colors' },
+          { key: 'bracketMatching', label: 'Bracket matching', description: 'Highlight matching brackets and parentheses' }
+        ].map((option) => (
+          <div key={option.key} className="flex items-center justify-between">
+            <div>
+              <h4 className="text-sm font-medium text-neutral-900 dark:text-white">{option.label}</h4>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">{option.description}</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.coding[option.key as keyof typeof settings.coding] as boolean}
+                onChange={(e) => handleInputChange('coding', option.key, e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-neutral-600 peer-checked:bg-primary-600"></div>
+            </label>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+          <div>
+            <h4 className="font-medium text-yellow-800 dark:text-yellow-200">Security Notice</h4>
+            <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+              Code execution happens in a secure sandbox environment. Your code is never stored permanently and cannot access system resources.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
       <Navbar variant="app" />
@@ -220,7 +492,10 @@ const Settings: React.FC = () => {
                 <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white">
                   {tabs.find(tab => tab.id === activeTab)?.name}
                 </h2>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                <button 
+                  onClick={handleSaveChanges}
+                  className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
                   <Save className="h-4 w-4" />
                   <span>Save Changes</span>
                 </button>
@@ -228,11 +503,37 @@ const Settings: React.FC = () => {
 
               {activeTab === 'profile' && renderProfileTab()}
               {activeTab === 'notifications' && renderNotificationsTab()}
-              {/* Add other tab content as needed */}
+              {activeTab === 'preferences' && renderPreferencesTab()}
+              {activeTab === 'coding' && renderCodingTab()}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 max-w-sm w-full mx-4">
+            <div className="text-center">
+              <div className="inline-flex p-3 bg-green-100 dark:bg-green-900 rounded-full mb-4">
+                <Check className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
+                Changes Saved Successfully
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+                Your settings have been updated and saved.
+              </p>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BackToTop />
     </div>

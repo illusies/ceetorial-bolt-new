@@ -59,75 +59,6 @@ const Dashboard: React.FC = () => {
     navigate('/community');
   };
 
-  const languages = [
-    {
-      name: 'C Programming',
-      slug: 'c',
-      description: 'Master the fundamentals of systems programming with C. Learn memory management, pointers, and low-level concepts.',
-      difficulty: 'Beginner' as const,
-      progress: 0,
-      totalLessons: 24,
-      completedLessons: 0,
-      color: 'bg-blue-500',
-      icon: 'C',
-    },
-    {
-      name: 'C++',
-      slug: 'cpp',
-      description: 'Build on your C knowledge with object-oriented programming, templates, and the Standard Template Library.',
-      difficulty: 'Intermediate' as const,
-      progress: 0,
-      totalLessons: 32,
-      completedLessons: 0,
-      color: 'bg-purple-500',
-      icon: 'C++',
-    },
-    {
-      name: 'Rust',
-      slug: 'rust',
-      description: 'Learn memory-safe systems programming with Rust\'s ownership model and zero-cost abstractions.',
-      difficulty: 'Advanced' as const,
-      progress: 0,
-      totalLessons: 28,
-      completedLessons: 0,
-      color: 'bg-orange-500',
-      icon: 'Rs',
-    },
-    {
-      name: 'Go',
-      slug: 'go',
-      description: 'Discover Google\'s approach to simple, concurrent programming with goroutines and channels.',
-      difficulty: 'Intermediate' as const,
-      progress: 0,
-      totalLessons: 20,
-      completedLessons: 0,
-      color: 'bg-cyan-500',
-      icon: 'Go',
-    },
-    {
-      name: 'Python',
-      slug: 'python',
-      description: 'Explore high-level programming concepts with Python\'s readable syntax and powerful libraries.',
-      difficulty: 'Beginner' as const,
-      progress: 0,
-      totalLessons: 26,
-      completedLessons: 0,
-      color: 'bg-green-500',
-      icon: 'Py',
-    },
-    {
-      name: 'JavaScript',
-      slug: 'javascript',
-      description: 'Master web development and asynchronous programming with the language of the internet.',
-      difficulty: 'Intermediate' as const,
-      progress: 0,
-      totalLessons: 30,
-      completedLessons: 0,
-      color: 'bg-yellow-500',
-      icon: 'JS',
-    },
-  ];
-
   const stats = [
     {
       label: 'Languages Learning',
@@ -241,7 +172,7 @@ const Dashboard: React.FC = () => {
               to="/courses"
               className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
             >
-              Browse Courses
+              Start Your First Course
             </Link>
           </div>
         </div>

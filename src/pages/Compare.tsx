@@ -1,5 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import BackToTop from '../components/BackToTop';
 import { GitCompare, Copy, Play, ArrowRight } from 'lucide-react';
 
 const Compare: React.FC = () => {
@@ -114,7 +117,7 @@ int main() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
       <Navbar variant="app" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -122,16 +125,16 @@ int main() {
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-4">
             <GitCompare className="h-8 w-8 text-primary-600" />
-            <h1 className="text-3xl font-bold text-neutral-900">Language Comparison</h1>
+            <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Language Comparison</h1>
           </div>
-          <p className="text-neutral-600">
+          <p className="text-neutral-600 dark:text-neutral-300">
             Compare syntax and concepts across different programming languages to understand their similarities and differences.
           </p>
         </div>
 
         {/* Language Selection */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-8">
-          <h2 className="text-xl font-semibold text-neutral-900 mb-4">Select Languages to Compare</h2>
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 mb-8">
+          <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-4">Select Languages to Compare</h2>
           <div className="flex flex-wrap gap-3">
             {languages.map((lang) => (
               <button
@@ -140,7 +143,7 @@ int main() {
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg border-2 transition-all ${
                   selectedLanguages.includes(lang.id)
                     ? `${lang.color} text-white border-transparent`
-                    : 'bg-white text-neutral-700 border-neutral-300 hover:border-neutral-400'
+                    : 'bg-white dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border-neutral-300 dark:border-neutral-600 hover:border-neutral-400 dark:hover:border-neutral-500'
                 }`}
               >
                 <span className="font-medium">{lang.name}</span>
@@ -152,14 +155,14 @@ int main() {
               </button>
             ))}
           </div>
-          <p className="text-sm text-neutral-500 mt-2">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">
             Select 1-3 languages to compare. Currently selected: {selectedLanguages.length}/3
           </p>
         </div>
 
         {/* Concept Selection */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-8">
-          <h2 className="text-xl font-semibold text-neutral-900 mb-4">Choose a Concept</h2>
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 mb-8">
+          <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-4">Choose a Concept</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {concepts.map((concept) => (
               <button
@@ -168,7 +171,7 @@ int main() {
                 className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
                   selectedConcept === concept.id
                     ? 'bg-primary-600 text-white border-primary-600'
-                    : 'bg-white text-neutral-700 border-neutral-300 hover:border-primary-300'
+                    : 'bg-white dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border-neutral-300 dark:border-neutral-600 hover:border-primary-300 dark:hover:border-primary-500'
                 }`}
               >
                 {concept.name}
@@ -184,7 +187,7 @@ int main() {
             const code = codeExamples[selectedConcept as keyof typeof codeExamples]?.[langId as keyof typeof codeExamples['hello-world']] || '// Code example not available';
             
             return (
-              <div key={langId} className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+              <div key={langId} className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
                 {/* Header */}
                 <div className={`${lang.color} p-4 text-white`}>
                   <div className="flex items-center justify-between">
@@ -209,7 +212,7 @@ int main() {
 
                 {/* Info */}
                 <div className="p-4">
-                  <div className="text-sm text-neutral-600">
+                  <div className="text-sm text-neutral-600 dark:text-neutral-300">
                     {langId === 'c' && 'Classic C approach with explicit type declarations and manual memory management.'}
                     {langId === 'cpp' && 'Object-oriented evolution with namespaces and improved I/O.'}
                     {langId === 'rust' && 'Memory-safe systems programming with zero-cost abstractions.'}
@@ -224,20 +227,26 @@ int main() {
         </div>
 
         {/* Learning Path Suggestion */}
-        <div className="mt-12 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl p-8 text-center">
-          <h3 className="text-2xl font-bold text-neutral-900 mb-4">
+        <div className="mt-12 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-xl p-8 text-center">
+          <h3 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
             Ready to dive deeper?
           </h3>
-          <p className="text-neutral-600 mb-6 max-w-2xl mx-auto">
+          <p className="text-neutral-600 dark:text-neutral-300 mb-6 max-w-2xl mx-auto">
             Understanding these differences is crucial for choosing the right language for your project. 
             Start with our structured learning paths to master each language.
           </p>
-          <button className="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors">
+          <Link 
+            to="/courses"
+            className="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+          >
             Explore Learning Paths
             <ArrowRight className="h-5 w-5 ml-2" />
-          </button>
+          </Link>
         </div>
       </div>
+
+      <Footer />
+      <BackToTop />
     </div>
   );
 };
