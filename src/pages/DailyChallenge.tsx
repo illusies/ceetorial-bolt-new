@@ -31,6 +31,7 @@ interface DailyChallenge {
   code: string;
   expectedOutput: string;
   hints: string[];
+  instructions: string;
 }
 
 const DailyChallenge: React.FC = () => {
@@ -43,7 +44,7 @@ const DailyChallenge: React.FC = () => {
   const [starting, setStarting] = useState(false);
   const [streak, setStreak] = useState<number>(0);
 
-  // Mock daily challenges
+  // Mock daily challenges with detailed instructions
   const dailyChallenges: DailyChallenge[] = [
     {
       id: 'daily-001',
@@ -53,6 +54,31 @@ const DailyChallenge: React.FC = () => {
       language: 'C',
       points: 50,
       timeLimit: 30,
+      instructions: `
+# Array Sum Calculator Challenge
+
+## Objective
+Write a C program that calculates the sum of all elements in an array of integers.
+
+## Requirements
+1. Use the provided array: {1, 2, 3, 4, 5}
+2. Calculate the sum using a for loop
+3. Print the result in the format: "Sum: [result]"
+4. The expected output should be: "Sum: 15"
+
+## Steps to Complete
+1. Initialize a variable to store the sum (start with 0)
+2. Use a for loop to iterate through all array elements
+3. Add each element to the sum variable
+4. Print the final sum
+
+## Tips
+- Remember that array indexing starts at 0
+- The array size is 5 elements
+- Use the format specifier %d for integers
+
+Good luck! You have 30 minutes to complete this challenge.
+      `,
       code: `#include <stdio.h>
 
 int main() {
@@ -80,6 +106,38 @@ int main() {
       language: 'C',
       points: 75,
       timeLimit: 45,
+      instructions: `
+# Palindrome Checker Challenge
+
+## Objective
+Create a function that checks if a given string is a palindrome (reads the same forwards and backwards).
+
+## Requirements
+1. Implement the isPalindrome function
+2. The function should return 1 if the string is a palindrome, 0 if not
+3. Test with the provided string "racecar"
+4. Print the result in the specified format
+
+## Algorithm Approach
+1. Compare characters from both ends of the string
+2. Move inward until you reach the middle
+3. If all character pairs match, it's a palindrome
+
+## Function Signature
+\`\`\`c
+int isPalindrome(char str[]) {
+    // Your implementation here
+    return 0; // Return 1 if palindrome, 0 if not
+}
+\`\`\`
+
+## Tips
+- Use strlen() to get the string length
+- Compare str[i] with str[length-1-i]
+- Consider using tolower() for case-insensitive comparison
+
+You have 45 minutes to complete this challenge.
+      `,
       code: `#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -115,6 +173,41 @@ int main() {
       language: 'C',
       points: 100,
       timeLimit: 60,
+      instructions: `
+# Fibonacci Sequence Challenge
+
+## Objective
+Generate the first n numbers in the Fibonacci sequence using recursion.
+
+## Requirements
+1. Implement the recursive fibonacci function
+2. Generate the first 10 Fibonacci numbers
+3. Print them in the specified format
+4. Expected output: "First 10 Fibonacci numbers: 0 1 1 2 3 5 8 13 21 34"
+
+## Fibonacci Sequence Rules
+- F(0) = 0
+- F(1) = 1
+- F(n) = F(n-1) + F(n-2) for n > 1
+
+## Function Signature
+\`\`\`c
+int fibonacci(int n) {
+    // Your recursive implementation here
+    return 0;
+}
+\`\`\`
+
+## Algorithm
+1. Handle base cases: fibonacci(0) = 0, fibonacci(1) = 1
+2. For n > 1: return fibonacci(n-1) + fibonacci(n-2)
+3. Use a loop to generate and print the first 10 numbers
+
+## Performance Note
+Recursive Fibonacci can be slow for large numbers. For this challenge, n=10 is manageable.
+
+You have 60 minutes to complete this advanced challenge.
+      `,
       code: `#include <stdio.h>
 
 int fibonacci(int n) {
@@ -193,13 +286,13 @@ int main() {
 
     setStarting(true);
     
-    // Simulate starting the challenge - create a blank page with challenge design
+    // Navigate to the challenge page with full challenge data
     setTimeout(() => {
-      // Navigate to a special challenge page that shows a blank coding interface
-      navigate(`/learn/c?challenge=daily&challengeId=${challenge.id}`, {
+      navigate('/challenge', {
         state: { 
-          challengeData: challenge,
-          isBlankChallenge: true 
+          challenge: challenge,
+          isDaily: true,
+          timeLimit: challenge.timeLimit
         }
       });
       setStarting(false);
