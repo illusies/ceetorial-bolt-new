@@ -117,7 +117,7 @@ const Challenge: React.FC = () => {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
-      if (!supabaseUrl) {
+      if (!supabaseUrl || !supabaseAnonKey) {
         // Enhanced mock execution for demo
         setTimeout(() => {
           let mockOutput = '';

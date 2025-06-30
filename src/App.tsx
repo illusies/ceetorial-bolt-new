@@ -36,8 +36,16 @@ const AuthHandler: React.FC = () => {
     // Handle auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN') {
-        // User successfully signed in, redirect to dashboard
-        navigate('/dashboard');
+        // Check if this is a first-time login
+        const isFirstLogin = session?.user?.user_metadata?.first_login === true;
+        
+        if (isFirstLogin) {
+          // Redirect to settings for profile setup
+          navigate('/settings?first-login=true');
+        } else {
+          // Regular login, go to dashboard
+          navigate('/dashboard');
+        }
       } else if (event === 'TOKEN_REFRESHED') {
         // Token was refreshed, user is still authenticated
         console.log('Token refreshed');
@@ -67,9 +75,9 @@ const AuthHandler: React.FC = () => {
           if (error) {
             console.error('Error setting session:', error);
           } else {
-            // Clear URL parameters and redirect to dashboard
+            // Clear URL parameters and redirect to settings for first-time setup
             window.history.replaceState({}, document.title, window.location.pathname);
-            navigate('/dashboard');
+            navigate('/settings?first-login=true');
           }
         } catch (error) {
           console.error('Error handling email confirmation:', error);

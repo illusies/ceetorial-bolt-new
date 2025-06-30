@@ -60,7 +60,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onModeChan
 
         // Get the current URL for proper redirect configuration
         const currentUrl = window.location.origin;
-        const redirectUrl = `${currentUrl}/dashboard`;
+        const redirectUrl = `${currentUrl}/settings?first-login=true`;
 
         const { error } = await supabase.auth.signUp({
           email: formData.email,
@@ -68,6 +68,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onModeChan
           options: {
             data: {
               name: formData.name,
+              first_login: true
             },
             emailRedirectTo: redirectUrl
           },
@@ -84,7 +85,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onModeChan
         });
         // Don't auto-switch to login mode, let user confirm email first
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         });
@@ -92,9 +93,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onModeChan
         if (error) throw error;
 
         setSuccess('Signed in successfully!');
+        
+        // Check if this is the user's first login
+        const isFirstLogin = data.user?.user_metadata?.first_login === true;
+        
         setTimeout(() => {
           onClose();
-          window.location.href = '/dashboard';
+          if (isFirstLogin) {
+            window.location.href = '/settings?first-login=true';
+          } else {
+            window.location.href = '/dashboard';
+          }
         }, 1000);
       }
     } catch (error: any) {

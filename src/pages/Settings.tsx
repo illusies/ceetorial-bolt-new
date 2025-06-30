@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BackToTop from '../components/BackToTop';
 import { 
@@ -17,20 +18,31 @@ import {
   Moon,
   Zap,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  ArrowRight
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 const Settings: React.FC = () => {
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showFirstLoginModal, setShowFirstLoginModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const isFirstLogin = searchParams.get('first-login') === 'true';
+
   const [settings, setSettings] = useState({
     profile: {
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      bio: 'Passionate C programmer learning new languages',
-      location: 'San Francisco, CA',
-      website: 'https://johndoe.dev'
+      name: '',
+      email: user?.email || '',
+      bio: '',
+      location: '',
+      website: ''
     },
     notifications: {
       emailNotifications: true,
@@ -64,6 +76,12 @@ const Settings: React.FC = () => {
     }
   });
 
+  useEffect(() => {
+    if (isFirstLogin) {
+      setShowFirstLoginModal(true);
+    }
+  }, [isFirstLogin]);
+
   const tabs = [
     { id: 'profile', name: 'Profile', icon: User },
     { id: 'notifications', name: 'Notifications', icon: Bell },
@@ -81,12 +99,45 @@ const Settings: React.FC = () => {
     }));
   };
 
-  const handleSaveChanges = () => {
-    // Simulate saving changes
-    setShowSuccessModal(true);
-    setTimeout(() => {
-      setShowSuccessModal(false);
-    }, 3000);
+  const handleSaveChanges = async () => {
+    setLoading(true);
+    try {
+      // Update user metadata if this is first login
+      if (isFirstLogin && user) {
+        const { error } = await supabase.auth.updateUser({
+          data: {
+            name: settings.profile.name,
+            bio: settings.profile.bio,
+            location: settings.profile.location,
+            website: settings.profile.website,
+            first_login: false // Mark as no longer first login
+          }
+        });
+
+        if (error) {
+          console.error('Error updating user metadata:', error);
+        }
+      }
+
+      // Simulate saving other settings
+      setShowSuccessModal(true);
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        if (isFirstLogin) {
+          // Remove the first-login parameter and redirect to dashboard
+          navigate('/dashboard');
+        }
+      }, 2000);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSkipForNow = () => {
+    setShowFirstLoginModal(false);
+    navigate('/dashboard');
   };
 
   const renderProfileTab = () => (
@@ -99,6 +150,7 @@ const Settings: React.FC = () => {
           type="text"
           value={settings.profile.name}
           onChange={(e) => handleInputChange('profile', 'name', e.target.value)}
+          placeholder="Enter your full name"
           className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
         />
       </div>
@@ -111,8 +163,11 @@ const Settings: React.FC = () => {
           type="email"
           value={settings.profile.email}
           onChange={(e) => handleInputChange('profile', 'email', e.target.value)}
+          placeholder="Enter your email address"
           className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
+          disabled
         />
+        <p className="text-xs text-neutral-500 mt-1">Email cannot be changed from this page</p>
       </div>
       
       <div>
@@ -123,6 +178,7 @@ const Settings: React.FC = () => {
           value={settings.profile.bio}
           onChange={(e) => handleInputChange('profile', 'bio', e.target.value)}
           rows={3}
+          placeholder="Tell us about yourself and your programming interests"
           className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
         />
       </div>
@@ -136,6 +192,7 @@ const Settings: React.FC = () => {
             type="text"
             value={settings.profile.location}
             onChange={(e) => handleInputChange('profile', 'location', e.target.value)}
+            placeholder="City, Country"
             className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
           />
         </div>
@@ -148,6 +205,7 @@ const Settings: React.FC = () => {
             type="url"
             value={settings.profile.website}
             onChange={(e) => handleInputChange('profile', 'website', e.target.value)}
+            placeholder="https://yourwebsite.com"
             className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
           />
         </div>
@@ -160,7 +218,7 @@ const Settings: React.FC = () => {
         <div className="relative">
           <input
             type={showPassword ? 'text' : 'password'}
-            placeholder="Enter new password"
+            placeholder="Enter new password (leave blank to keep current)"
             className="w-full px-4 py-3 pr-12 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
           />
           <button
@@ -494,10 +552,11 @@ const Settings: React.FC = () => {
                 </h2>
                 <button 
                   onClick={handleSaveChanges}
-                  className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  disabled={loading}
+                  className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
-                  <span>Save Changes</span>
+                  <span>{loading ? 'Saving...' : 'Save Changes'}</span>
                 </button>
               </div>
 
@@ -510,6 +569,40 @@ const Settings: React.FC = () => {
         </div>
       </div>
 
+      {/* First Login Modal */}
+      {showFirstLoginModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-neutral-800 rounded-xl p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="inline-flex p-3 bg-primary-100 dark:bg-primary-900 rounded-full mb-4">
+                <User className="h-6 w-6 text-primary-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+                Welcome to Ceetorial! 🎉
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-300 mb-6">
+                Let's set up your profile to personalize your learning experience. You can always update this later.
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleSkipForNow}
+                  className="flex-1 px-4 py-2 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                >
+                  Skip for now
+                </button>
+                <button
+                  onClick={() => setShowFirstLoginModal(false)}
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center space-x-1"
+                >
+                  <span>Set up profile</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -519,17 +612,14 @@ const Settings: React.FC = () => {
                 <Check className="h-6 w-6 text-green-600" />
               </div>
               <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
-                Changes Saved Successfully
+                {isFirstLogin ? 'Profile Setup Complete!' : 'Changes Saved Successfully'}
               </h3>
               <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-                Your settings have been updated and saved.
+                {isFirstLogin 
+                  ? 'Your profile has been set up. Welcome to your learning journey!'
+                  : 'Your settings have been updated and saved.'
+                }
               </p>
-              <button
-                onClick={() => setShowSuccessModal(false)}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>
