@@ -59,6 +59,7 @@ const Dashboard: React.FC = () => {
     navigate('/community');
   };
 
+  // Reset stats to 0 for new users
   const stats = [
     {
       label: 'Languages Learning',
@@ -101,7 +102,7 @@ const Dashboard: React.FC = () => {
             Welcome back, {getFirstName()}! 👋
           </h1>
           <p className="text-neutral-600 dark:text-neutral-300">
-            Continue your programming journey. You're doing great!
+            Ready to start your programming journey? Let's begin with the fundamentals!
           </p>
         </div>
 
@@ -135,45 +136,56 @@ const Dashboard: React.FC = () => {
               className="flex items-center space-x-3 p-4 bg-secondary-50 dark:bg-secondary-900/20 text-secondary-700 dark:text-secondary-300 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-900/30 transition-colors"
             >
               <BookOpen className="h-5 w-5" />
-              <span className="font-medium">Continue Learning</span>
+              <span className="font-medium">Start Learning</span>
             </button>
             <button 
               onClick={handleJoinDiscussion}
               className="flex items-center space-x-3 p-4 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
             >
               <Users className="h-5 w-5" />
-              <span className="font-medium">Join Discussion</span>
+              <span className="font-medium">Join Community</span>
             </button>
           </div>
         </div>
 
-        {/* Languages Grid */}
+        {/* Getting Started Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white">Your Learning Path</h2>
+            <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white">Get Started</h2>
             <Link 
               to="/courses"
               className="flex items-center space-x-2 text-primary-600 hover:text-primary-700 font-medium"
             >
-              <span>View All</span>
+              <span>View All Courses</span>
               <Zap className="h-4 w-4" />
             </Link>
           </div>
           
-          <div className="text-center py-8">
-            <div className="inline-flex p-4 bg-neutral-100 dark:bg-neutral-700 rounded-full mb-4">
-              <BookOpen className="h-8 w-8 text-neutral-400" />
+          <div className="text-center py-12 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
+            <div className="inline-flex p-4 bg-primary-100 dark:bg-primary-900 rounded-full mb-6">
+              <BookOpen className="h-8 w-8 text-primary-600" />
             </div>
-            <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-2">No courses enrolled yet</h3>
-            <p className="text-neutral-600 dark:text-neutral-300 mb-6">
-              Choose from our comprehensive programming courses to start your learning journey.
+            <h3 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
+              Welcome to Ceetorial! 🎉
+            </h3>
+            <p className="text-lg text-neutral-600 dark:text-neutral-300 mb-8 max-w-2xl mx-auto">
+              You're about to embark on an exciting programming journey. Start with our comprehensive C programming course 
+              and build a solid foundation for your coding career.
             </p>
-            <Link 
-              to="/courses"
-              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
-            >
-              Start Your First Course
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={handleContinueLearning}
+                className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold text-lg"
+              >
+                Start C Programming Course
+              </button>
+              <Link 
+                to="/courses"
+                className="px-8 py-4 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors font-semibold text-lg text-center"
+              >
+                Browse All Courses
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -185,14 +197,14 @@ const Dashboard: React.FC = () => {
               <BookOpen className="h-8 w-8 text-neutral-400" />
             </div>
             <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-2">No activity yet</h3>
-            <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+            <p className="text-neutral-600 dark:text-neutral-300 mb-6">
               Start learning to see your progress and achievements here.
             </p>
             <button 
               onClick={handleContinueLearning}
               className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
             >
-              Start Your First Course
+              Start Your First Lesson
             </button>
           </div>
         </div>

@@ -19,20 +19,23 @@ import {
   Zap,
   Shield,
   AlertTriangle,
-  ArrowRight
+  ArrowRight,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 
 const Settings: React.FC = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFirstLoginModal, setShowFirstLoginModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const isFirstLogin = searchParams.get('first-login') === 'true';
 
@@ -140,6 +143,21 @@ const Settings: React.FC = () => {
     navigate('/dashboard');
   };
 
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    try {
+      // In a real app, you would call an API to delete the user account
+      // For now, we'll just sign out the user
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
+    }
+  };
+
   const renderProfileTab = () => (
     <div className="space-y-6">
       <div>
@@ -228,6 +246,28 @@ const Settings: React.FC = () => {
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
+        </div>
+      </div>
+
+      {/* Delete Account Section */}
+      <div className="pt-8 border-t border-neutral-200 dark:border-neutral-700">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+          <div className="flex items-start space-x-3">
+            <AlertTriangle className="h-6 w-6 text-red-600 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-900 dark:text-red-100 mb-2">Delete Account</h3>
+              <p className="text-red-800 dark:text-red-200 text-sm mb-4">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Delete Account</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -596,6 +636,40 @@ const Settings: React.FC = () => {
                 >
                   <span>Set up profile</span>
                   <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-neutral-800 rounded-xl p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="inline-flex p-3 bg-red-100 dark:bg-red-900 rounded-full mb-4">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+                Delete Account
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-300 mb-6">
+                Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-4 py-2 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {deleteLoading ? 'Deleting...' : 'Delete Account'}
                 </button>
               </div>
             </div>

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
@@ -15,6 +16,11 @@ import {
 } from 'lucide-react';
 
 const Courses: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState('All Levels');
+  const [selectedLanguage, setSelectedLanguage] = useState('All Languages');
+
   const courses = [
     {
       id: 1,
@@ -29,7 +35,8 @@ const Courses: React.FC = () => {
       image: 'https://images.pexels.com/photos/3861958/pexels-photo-3861958.jpeg?auto=compress&cs=tinysrgb&w=400',
       instructor: 'Dr. Sarah Chen',
       topics: ['Variables & Data Types', 'Control Structures', 'Functions', 'Pointers', 'Memory Management'],
-      featured: true
+      featured: true,
+      language: 'C'
     },
     {
       id: 2,
@@ -43,7 +50,8 @@ const Courses: React.FC = () => {
       price: 'Pro',
       image: 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=400',
       instructor: 'Marcus Rodriguez',
-      topics: ['OOP Concepts', 'Templates', 'STL', 'Smart Pointers', 'Modern C++']
+      topics: ['OOP Concepts', 'Templates', 'STL', 'Smart Pointers', 'Modern C++'],
+      language: 'C++'
     },
     {
       id: 3,
@@ -57,7 +65,8 @@ const Courses: React.FC = () => {
       price: 'Pro',
       image: 'https://images.pexels.com/photos/3861972/pexels-photo-3861972.jpeg?auto=compress&cs=tinysrgb&w=400',
       instructor: 'Emily Watson',
-      topics: ['Ownership', 'Borrowing', 'Lifetimes', 'Concurrency', 'Error Handling']
+      topics: ['Ownership', 'Borrowing', 'Lifetimes', 'Concurrency', 'Error Handling'],
+      language: 'Rust'
     },
     {
       id: 4,
@@ -71,7 +80,8 @@ const Courses: React.FC = () => {
       price: 'Pro',
       image: 'https://images.pexels.com/photos/3861975/pexels-photo-3861975.jpeg?auto=compress&cs=tinysrgb&w=400',
       instructor: 'Alex Kim',
-      topics: ['Goroutines', 'Channels', 'Select Statement', 'Worker Pools', 'Context Package']
+      topics: ['Goroutines', 'Channels', 'Select Statement', 'Worker Pools', 'Context Package'],
+      language: 'Go'
     },
     {
       id: 5,
@@ -85,7 +95,8 @@ const Courses: React.FC = () => {
       price: 'Pro',
       image: 'https://images.pexels.com/photos/3861978/pexels-photo-3861978.jpeg?auto=compress&cs=tinysrgb&w=400',
       instructor: 'Lisa Zhang',
-      topics: ['File Operations', 'Process Management', 'Network Programming', 'Automation', 'Testing']
+      topics: ['File Operations', 'Process Management', 'Network Programming', 'Automation', 'Testing'],
+      language: 'Python'
     },
     {
       id: 6,
@@ -99,8 +110,8 @@ const Courses: React.FC = () => {
       price: 'Pro',
       image: 'https://images.pexels.com/photos/3861981/pexels-photo-3861981.jpeg?auto=compress&cs=tinysrgb&w=400',
       instructor: 'David Park',
-      topics: ['V8 Engine', 'Event Loop', 'Memory Management', 'JIT Compilation', 'Performance Optimization']
-    
+      topics: ['V8 Engine', 'Event Loop', 'Memory Management', 'JIT Compilation', 'Performance Optimization'],
+      language: 'JavaScript'
     }
   ];
 
@@ -137,6 +148,59 @@ const Courses: React.FC = () => {
     }
   };
 
+  const handleSearch = () => {
+    // Filter courses based on search term and filters
+    console.log('Searching for:', searchTerm, 'Level:', selectedLevel, 'Language:', selectedLanguage);
+  };
+
+  const handleStartLearning = (course: any) => {
+    if (course.language === 'C') {
+      navigate('/learn/c');
+    } else {
+      // For other languages, show a coming soon message or redirect to pricing
+      alert(`${course.language} course coming soon! Start with our free C programming course.`);
+      navigate('/learn/c');
+    }
+  };
+
+  const handleEnrollNow = (course: any) => {
+    if (course.price === 'Free') {
+      handleStartLearning(course);
+    } else {
+      // Redirect to pricing page for Pro courses
+      navigate('/pricing');
+    }
+  };
+
+  const handleStartLearningPath = (path: any) => {
+    // Start with the first course in the learning path
+    navigate('/learn/c');
+  };
+
+  const handleStartWithFreeCourse = () => {
+    navigate('/learn/c');
+  };
+
+  const handleViewAllCourses = () => {
+    // Scroll to courses section
+    const coursesSection = document.getElementById('all-courses');
+    if (coursesSection) {
+      coursesSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Filter courses based on search and filters
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesLevel = selectedLevel === 'All Levels' || course.level === selectedLevel;
+    const matchesLanguage = selectedLanguage === 'All Languages' || course.language === selectedLanguage;
+    
+    return matchesSearch && matchesLevel && matchesLanguage;
+  });
+
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
       <Navbar variant="app" />
@@ -163,17 +227,34 @@ const Courses: React.FC = () => {
             <input
               type="text"
               placeholder="Search courses..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
+            <button
+              onClick={handleSearch}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm"
+            >
+              Search
+            </button>
           </div>
           <div className="flex gap-2">
-            <select className="px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white">
+            <select 
+              value={selectedLevel}
+              onChange={(e) => setSelectedLevel(e.target.value)}
+              className="px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
+            >
               <option>All Levels</option>
               <option>Beginner</option>
               <option>Intermediate</option>
               <option>Advanced</option>
             </select>
-            <select className="px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white">
+            <select 
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+              className="px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-neutral-800 dark:text-white"
+            >
               <option>All Languages</option>
               <option>C</option>
               <option>C++</option>
@@ -186,7 +267,7 @@ const Courses: React.FC = () => {
         </div>
 
         {/* Featured Course */}
-        {courses.filter(course => course.featured).map(course => (
+        {filteredCourses.filter(course => course.featured).map(course => (
           <div key={course.id} className="bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-2xl p-8 mb-16">
             <div className="grid lg:grid-cols-2 gap-8 items-center">
               <div>
@@ -215,7 +296,10 @@ const Courses: React.FC = () => {
                   </div>
                 </div>
                 
-                <button className="flex items-center space-x-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold">
+                <button 
+                  onClick={() => handleStartLearning(course)}
+                  className="flex items-center space-x-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
+                >
                   <Play className="h-5 w-5" />
                   <span>Start Learning</span>
                 </button>
@@ -239,10 +323,15 @@ const Courses: React.FC = () => {
         ))}
 
         {/* All Courses */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-neutral-900 dark:text-white mb-8">All Courses</h2>
+        <div id="all-courses" className="mb-16">
+          <h2 className="text-3xl font-bold text-neutral-900 dark:text-white mb-8">
+            {searchTerm || selectedLevel !== 'All Levels' || selectedLanguage !== 'All Languages' 
+              ? `Search Results (${filteredCourses.filter(course => !course.featured).length})` 
+              : 'All Courses'
+            }
+          </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {courses.filter(course => !course.featured).map(course => (
+            {filteredCourses.filter(course => !course.featured).map(course => (
               <div key={course.id} className="bg-white dark:bg-neutral-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
                 <div className="relative">
                   <img 
@@ -284,7 +373,10 @@ const Courses: React.FC = () => {
                   
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-bold text-primary-600">{course.price}</span>
-                    <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium">
+                    <button 
+                      onClick={() => handleEnrollNow(course)}
+                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                    >
                       Enroll Now
                     </button>
                   </div>
@@ -292,6 +384,26 @@ const Courses: React.FC = () => {
               </div>
             ))}
           </div>
+
+          {filteredCourses.length === 0 && (
+            <div className="text-center py-12">
+              <BookOpen className="h-16 w-16 text-neutral-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">No courses found</h3>
+              <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+                Try adjusting your search terms or filters to find more courses.
+              </p>
+              <button 
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedLevel('All Levels');
+                  setSelectedLanguage('All Languages');
+                }}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Learning Paths */}
@@ -320,7 +432,10 @@ const Courses: React.FC = () => {
                   <span>{path.level}</span>
                 </div>
                 
-                <button className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold">
+                <button 
+                  onClick={() => handleStartLearningPath(path)}
+                  className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
+                >
                   Start Learning Path
                 </button>
               </div>
@@ -337,10 +452,16 @@ const Courses: React.FC = () => {
             Join thousands of learners who have mastered programming with our comprehensive courses and hands-on approach.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold">
+            <button 
+              onClick={handleStartWithFreeCourse}
+              className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
+            >
               Start with Free Course
             </button>
-            <button className="px-8 py-4 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors font-semibold">
+            <button 
+              onClick={handleViewAllCourses}
+              className="px-8 py-4 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors font-semibold"
+            >
               View All Courses
             </button>
           </div>
