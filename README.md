@@ -1,5 +1,3 @@
-![Uploading Screenshot 2025-06-30 115359.png…]()
-
 # Ceetorial
 
 **Learn something new every day** — Ceetorial delivers daily bite-sized tutorials on web development and programming topics.
